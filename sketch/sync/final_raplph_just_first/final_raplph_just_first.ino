@@ -78,28 +78,33 @@ uint8_t beaconPacket[109] = {
 };
 
 // spammer
-const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}; // used Wi-Fi channels (available: 1-14)
+const uint8_t channels[] = {1, 3, 5, 7, 9, 11 }; // used Wi-Fi channels (available: 1-14)
 const bool wpa2 = false; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
 
 // saver
+const char *myHostname = "waves";
+
 const char* filename = "/messages.txt";
 const byte DNS_PORT = 53;
-IPAddress apIP(172, 217, 28, 1);
-DNSServer dnsServer;
-ESP8266WebServer webServer(80);
+IPAddress apIP(8, 8, 8, 8);
+IPAddress netMsk(255, 255, 255, 0);
 
-String NETWORK_NAME = "LEAVE A NOTE";
-uint32_t INTERVAL = 25;
+DNSServer dnsServer;
+ESP8266WebServer server(80);
+
+
+String NETWORK_NAME = "LEAVE A NOTE TO ME";
+uint32_t INTERVAL = 102;
 String globalStringNetworks = "";
 
  String responseHTML = ""
                       "<!DOCTYPE html><html><head><title>Leave your message</title></head><body>"
                       "<meta name='viewport' content='width=device-width, initial-scale=1'>"
                       "<h1>WAVE NOTE</h1>"
-                      "<form action='/message'>"
+                      "<form action='/message' id='form1'>"
                        "WAVE NOTE: <input type='text' name='message'></input>"
-                      "<input type='submit' value='Submit>"
+                      "<button type='submit' form='form1' value='Submit'>Submit</button>"
                       "</form>"
                       "</body></html>";
 
@@ -131,31 +136,34 @@ void setup() {
   }
   */
 
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  // WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(NETWORK_NAME);
+  delay(500); // Without delay I've seen the IP address blank
+
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  webServer.on("/wifi", handleRoot );
-  webServer.on("/", handleRoot);
-  webServer.on("/wifisave", handleRoot);
-  webServer.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
-  webServer.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
-
-  // replay to all requests with same HTML
-  webServer.onNotFound([]() {
-    webServer.send(200, "text/html", responseHTML);
-  });
-
-  webServer.on("/message", handleForm); //form action is handled here
-
+  server.on("/", handleRoot);
+  server.on("/wifi", handleWifi);
+  server.on("/wifisave", handleWifiSave);
+  server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
   
+  
+  // replay to all requests with same HTML
+  // server.onNotFound([]() {
+  //  server.send(200, "text/html", responseHTML);
+  // });
+  server.onNotFound(handleNotFound);
 
-  webServer.begin();
+
+  server.on("/message", handleForm); //form action is handled here
+
+  server.begin();
   delay(1000);
 
   globalStringNetworks = readFile();
@@ -164,15 +172,12 @@ void setup() {
   setupSpammer();
 }
 
-void handleRoot () {
-  webServer.send(200, "text/html", responseHTML);
+void handleRoot2 () {
+  server.send(200, "text/html", responseHTML);
 }
 
 void loop() {
   
-  // handle people connecting
-  dnsServer.processNextRequest();
-  webServer.handleClient();
 
   // spammer
   currentTime = millis();
@@ -261,6 +266,10 @@ void loop() {
     Serial.println(packetCounter);
     packetCounter = 0;
   }
+
+  // handle people connecting
+  dnsServer.processNextRequest();
+  server.handleClient();
 }
 
 String readFile () {
@@ -319,7 +328,12 @@ void setupSpammer () {
 }
 
 void handleForm() {
- String message = webServer.arg("message"); 
+
+  
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+ String message = server.arg("message"); 
 
  String oldNetworks = readFile();
 
@@ -327,6 +341,7 @@ void handleForm() {
  
  Serial.print("Message:");
  Serial.println(message);
+ server.send(200, "text/html", responseHTML); //Send web page
 
   //Create New File And Write Data to It
   //w=Write Open file for writing
@@ -348,7 +363,7 @@ void handleForm() {
       f.print(finalToWrite);
       Serial.println("WROTE:" + finalToWrite);
 
-      delay(100);
+      delay(10);
 
       globalStringNetworks = readFile();
 
@@ -357,7 +372,6 @@ void handleForm() {
   }
 
 
- webServer.send(200, "text/html", responseHTML); //Send web page
 }
 
 
