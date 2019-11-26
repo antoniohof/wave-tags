@@ -78,7 +78,7 @@ uint8_t beaconPacket[109] = {
 };
 
 // spammer
-const uint8_t channels[] = {1, 6, 11}; // used Wi-Fi channels (available: 1-14)
+const uint8_t channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}; // used Wi-Fi channels (available: 1-14)
 const bool wpa2 = false; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
 
@@ -89,17 +89,16 @@ IPAddress apIP(172, 217, 28, 1);
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
 
-String NETWORK_NAME = "text-me";
-uint32_t INTERVAL = 50;
-
-
+String NETWORK_NAME = "LEAVE A NOTE";
+uint32_t INTERVAL = 25;
+String globalStringNetworks = "";
 
  String responseHTML = ""
                       "<!DOCTYPE html><html><head><title>Leave your message</title></head><body>"
                       "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-                      "<h1>Leave your message</h1>"
+                      "<h1>WAVE NOTE</h1>"
                       "<form action='/message'>"
-                       "message: <input type='text' name='message'></input>"
+                       "WAVE NOTE: <input type='text' name='message'></input>"
                       "<input type='submit' value='Submit>"
                       "</form>"
                       "</body></html>";
@@ -121,7 +120,7 @@ void setup() {
   }
 
  //Format File System
- 
+ /*
   if(SPIFFS.format())
   {
     Serial.println("File System Formated");
@@ -130,6 +129,7 @@ void setup() {
   {
     Serial.println("File System Formatting Error");
   }
+  */
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
@@ -137,7 +137,14 @@ void setup() {
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
+
+  webServer.on("/wifi", handleRoot );
+  webServer.on("/", handleRoot);
+  webServer.on("/wifisave", handleRoot);
+  webServer.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
+  webServer.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
 
   // replay to all requests with same HTML
   webServer.onNotFound([]() {
@@ -146,13 +153,23 @@ void setup() {
 
   webServer.on("/message", handleForm); //form action is handled here
 
+  
+
   webServer.begin();
+  delay(1000);
 
-
+  globalStringNetworks = readFile();
+  Serial.println(globalStringNetworks);
+  delay(1000);
   setupSpammer();
 }
 
+void handleRoot () {
+  webServer.send(200, "text/html", responseHTML);
+}
+
 void loop() {
+  
   // handle people connecting
   dnsServer.processNextRequest();
   webServer.handleClient();
@@ -163,9 +180,8 @@ void loop() {
   // send out SSIDs
   if (currentTime - attackTime > INTERVAL) {
 
-    String hey = readFile();
-    char ssids[hey.length()+1];
-    hey.toCharArray(ssids, hey.length()+1) ;
+    char ssids[globalStringNetworks.length()+1];
+    globalStringNetworks.toCharArray(ssids, globalStringNetworks.length()+1) ;
    
     attackTime = currentTime;
 
@@ -312,7 +328,6 @@ void handleForm() {
  Serial.print("Message:");
  Serial.println(message);
 
-  delay(1000);
   //Create New File And Write Data to It
   //w=Write Open file for writing
   File f = SPIFFS.open(filename, "w");
@@ -324,17 +339,24 @@ void handleForm() {
   {
       //Write data to file
       Serial.println("Writing Wifi name to File");
-      finalToWrite = message + "_" + oldNetworks;
+      if (oldNetworks.length() > 1) {
+        finalToWrite = message + "_" + oldNetworks;
+      } else {
+        finalToWrite = message;
+      }
       
       f.print(finalToWrite);
-
       Serial.println("WROTE:" + finalToWrite);
+
+      delay(100);
+
+      globalStringNetworks = readFile();
+
 
       f.close();  //Close file
   }
 
 
- String s = "<a href='/'> Go Back </a>";
  webServer.send(200, "text/html", responseHTML); //Send web page
 }
 
