@@ -94,17 +94,17 @@ DNSServer dnsServer;
 ESP8266WebServer server(80);
 
 
-String NETWORK_NAME = "LEAVE A NOTE TO ME";
-uint32_t INTERVAL = 102;
+String NETWORK_NAME = "˜˜LEAVE A WAVE NOTE˜˜";
+uint32_t INTERVAL = 10;
 String globalStringNetworks = "";
 
  String responseHTML = ""
                       "<!DOCTYPE html><html><head><title>Leave your message</title></head><body>"
                       "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-                      "<h1>WAVE NOTE</h1>"
+                      "<h1>Anything, really. Protest msgs, random msgs, indirect msgs...</h1>"
                       "<form action='/message' id='form1'>"
-                       "WAVE NOTE: <input type='text' name='message'></input>"
-                      "<button type='submit' form='form1' value='Submit'>Submit</button>"
+                       "WAVE NOTE: <input maxlength='31' type='text' name='message'></input>"
+                      "<button type='submit' form='form1' value='Submit'>........SEND........</button>"
                       "</form>"
                       "</body></html>";
 
@@ -135,12 +135,14 @@ void setup() {
     Serial.println("File System Formatting Error");
   }
   */
+  
+ 
 
   // WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(NETWORK_NAME);
-  delay(500); // Without delay I've seen the IP address blank
-
+  delay(2000); // Without delay I've seen the IP address blank
+  Serial.println("initiliazed net: " + NETWORK_NAME);
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
