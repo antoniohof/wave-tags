@@ -5,6 +5,13 @@
 #define PUYA_SUPPORT 1
 #include <FS.h>   //Include File System Headers
 
+// #define SPAMMER 1
+
+#define CAPTIVE 1
+
+char emptySSID[32];
+
+#ifdef SPAMMER
 extern "C" {
 #include "user_interface.h"
   typedef void (*freedom_outside_cb_t)(uint8 status);
@@ -15,7 +22,6 @@ extern "C" {
 // ==================== //
 
 // run-time variables
-char emptySSID[32];
 uint8_t channelIndex = 0;
 uint8_t macAddr[6];
 uint8_t wifi_channel = 1;
@@ -81,7 +87,9 @@ uint8_t beaconPacket[109] = {
 const uint8_t channels[] = {1, 3, 5, 7, 9, 11 }; // used Wi-Fi channels (available: 1-14)
 const bool wpa2 = false; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
+#endif
 
+#ifdef CAPTIVE
 // saver
 const char *myHostname = "waves";
 
@@ -92,11 +100,14 @@ IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
 ESP8266WebServer server(80);
+#endif
 
 
 String NETWORK_NAME = "˜˜LEAVE A WAVE NOTE˜˜";
-uint32_t INTERVAL = 100;
+uint32_t INTERVAL = 80;
 String globalStringNetworks = "";
+
+#ifdef CAPTIVE
 
  String responseHTML = ""
                       "<!DOCTYPE html><html><head><title>Leave your message</title></head><body>"
@@ -108,41 +119,26 @@ String globalStringNetworks = "";
                       "</form>"
                       "</body></html>";
 
-
+#endif
 void setup() {
   Serial.begin(115200);
-  delay(5000);
-  Serial.println("STARTING APP");
+  delay(1000);
+
+#ifdef CAPTIVE
 
   //Initialize File System
-  if(SPIFFS.begin())
-  {
-    Serial.println("SPIFFS Initialize....ok");
-  }
-  else
-  {
-    Serial.println("SPIFFS Initialization...failed");
-  }
+  SPIFFS.begin();
 
  //Format File System
  /*
-  if(SPIFFS.format())
-  {
-    Serial.println("File System Formated");
-  }
-  else
-  {
-    Serial.println("File System Formatting Error");
-  }
-  */
+  // SPIFFS.format()
+ */
   
  
-
   // WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
   WiFi.softAP(NETWORK_NAME);
   delay(2000); // Without delay I've seen the IP address blank
-  Serial.println("initiliazed net: " + NETWORK_NAME);
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
@@ -169,19 +165,41 @@ void setup() {
   delay(1000);
 
   globalStringNetworks = readFile();
+  delay(5000);
+
   Serial.println(globalStringNetworks);
-  delay(1000);
+#endif
+
+#ifdef SPAMMER
+
+    // start WiFi
+  WiFi.mode(WIFI_OFF);
+  wifi_set_opmode(STATION_MODE);
+
   setupSpammer();
+  #endif
 }
+
+#ifdef CAPTIVE
 
 void handleRoot2 () {
   server.send(200, "text/html", responseHTML);
 }
+#endif
 
 void loop() {
-  
+ #ifdef SPAMMER
+  while(Serial.available()) {
+    globalStringNetworks = Serial.readString();// read the incoming data as string
+    Serial.println("received networks");
+    Serial.println(globalStringNetworks);
+  }
+
+  #endif
 
   // spammer
+  #ifdef SPAMMER
+
   currentTime = millis();
 
   // send out SSIDs
@@ -268,11 +286,16 @@ void loop() {
     Serial.println(packetCounter);
     packetCounter = 0;
   }
+  #endif
 
   // handle people connecting
+  #ifdef CAPTIVE
   dnsServer.processNextRequest();
   server.handleClient();
+  #endif
 }
+
+#ifdef CAPTIVE
 
 String readFile () {
     String data;
@@ -282,10 +305,7 @@ String readFile () {
     //Read File data
     File f = SPIFFS.open(filename, "r");
     
-    if (!f) {
-      Serial.println("file open failed");
-    }
-    else
+    if (f)
     {
         while(f.available()) {
           //Lets read line by line from the file
@@ -296,7 +316,9 @@ String readFile () {
         return data;
     }
 }
+#endif
 
+#ifdef SPAMMER
 
 void setupSpammer () {
   // create empty SSID
@@ -323,15 +345,10 @@ void setupSpammer () {
   // set channel
   wifi_set_channel(channels[0]);
 
-  
-  Serial.println();
-  Serial.println("Started \\o/");
-  Serial.println();
 }
-
+#endif
+#ifdef CAPTIVE
 void handleForm() {
-
-  
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
@@ -340,22 +357,15 @@ void handleForm() {
  String oldNetworks = readFile();
 
  String finalToWrite = "";
- 
- Serial.print("Message:");
- Serial.println(message);
  server.send(200, "text/html", responseHTML); //Send web page
 
   //Create New File And Write Data to It
   //w=Write Open file for writing
   File f = SPIFFS.open(filename, "w");
   
-  if (!f) {
-    Serial.println("file open failed");
-  }
-  else
+  if (f)
   {
       //Write data to file
-      Serial.println("Writing Wifi name to File");
       if (oldNetworks.length() > 1) {
         finalToWrite = message + "_" + oldNetworks;
       } else {
@@ -363,26 +373,29 @@ void handleForm() {
       }
       
       f.print(finalToWrite);
-      Serial.println("WROTE:" + finalToWrite);
 
       delay(10);
 
       globalStringNetworks = readFile();
-
+      Serial.println(globalStringNetworks);
 
       f.close();  //Close file
   }
 
 
 }
-
+#endif
 
 // funcitons for spamming networks
 // generates random MAC
+#ifdef SPAMMER
+
 void randomMac() {
   for (int i = 0; i < 6; i++)
     macAddr[i] = random(256);
 }
+#endif
+#ifdef SPAMMER
 
 // goes to next channel
 void nextChannel() {
@@ -397,3 +410,4 @@ void nextChannel() {
     }
   }
 }
+#endif
