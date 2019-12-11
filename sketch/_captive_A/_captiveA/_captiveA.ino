@@ -84,8 +84,8 @@ uint8_t beaconPacket[109] = {
 };
 
 // spammer
-const uint8_t channels[] = {1, 3, 5, 7, 9, 11 }; // used Wi-Fi channels (available: 1-14)
-const bool wpa2 = false; // WPA2 networks
+const uint8_t channels[] = {1, 6, 11}; // used Wi-Fi channels (available: 1-14)
+const bool wpa2 = true; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
 #endif
 
@@ -104,24 +104,15 @@ ESP8266WebServer server(80);
 
 
 String NETWORK_NAME = "˜˜LEAVE A WAVE NOTE˜˜";
-uint32_t INTERVAL = 80;
+uint32_t INTERVAL = 50;
 String globalStringNetworks = "";
 
 #ifdef CAPTIVE
 
- String responseHTML = ""
-                      "<!DOCTYPE html><html><head><title>Leave your message</title></head><body>"
-                      "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-                      "<h1>Anything, really. Protest msgs, random msgs, indirect msgs...</h1>"
-                      "<form action='/message' id='form1'>"
-                       "WAVE NOTE: <input maxlength='31' type='text' name='message'></input>"
-                      "<button type='submit' form='form1' value='Submit'>........SEND........</button>"
-                      "</form>"
-                      "</body></html>";
-
+ String responseHTML = "<!DOCTYPE html>\n<html>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<head>\n    <link href=\"https://fonts.googleapis.com/css?family=Sulphur+Point&display=swap\" rel=\"stylesheet\"><title>Leave your message</title>\n</head>\n<body>\n  <div class=\"content\">\n    <h1>leave a note</h1>\n    <form class=\"form\" action=\"/message\" id=\"form1\">\n      <input maxlength=\"31\" type=\"text\" name=\"message\">\n      </input>\n    </form>\n    <button type=\"submit\" form=\"form1\" value=\"Submit\">\n      SEND\n    </button>\n  </div>\n  <div class=\"readmore\">\n    <a class=\"link\" href=\"/readmore\">read more</a>\n  </div>\n</body>\n<style>\n  * {\n    font-family: \"Sulphur Point\";\n  }\n  body {\n    background-color: #ffd300;\n    height: 100vh;\n    overflow-y: hidden;\n  }\n  .content {\n    background-color: #ffd300;\n    height: 100%;\n    overflow-y: hidden;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-around;\n  }\n  h1 {\n    color: black;\n    text-align: center;\n    font-weight: 500;\n    margin: 30px;\n  }\n  .form {\n    height: 20px;\n    width: 80%;\n    margin: 0 auto;\n    margin-bottom: 50px;\n    display: flex\n  }\n  input {\n    height: 20px;\n    width: 100%;\n    font-size: 15px;\n    margin: 0 auto;\n    border-top: 0px;\n    border-left: 0px;\n    border-right: 0px;\n    outline: 0;\n    background-color: #ffd300;\n    border-bottom: 1px solid black;\n    padding:2px 2px;\n  }\n  button {\n    height: 35px;\n    width: 200px;\n    border: 0px solid black;\n    margin: 0 auto;\n    color: #ffd300;\n    font-weight: 1000;\n    background-color: black;\n    border-color: black;\n  }\n  button:hover {\n    background-color: red;\n    color: white\n  }\n\n  .readmore {\n    position: absolute;\n    bottom: 0;\n    height: 20px;\n    width: 100%;\n    color: black;\n    margin-bottom: 5px;\n  }\n  link {\n    color: black !important;\n  }\n  image {\n    position: static;\n    top: 0;\n  }\n</style>\n</html>";
 #endif
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(1000);
 
 #ifdef CAPTIVE
@@ -129,15 +120,13 @@ void setup() {
   //Initialize File System
   SPIFFS.begin();
 
- //Format File System
- /*
-  // SPIFFS.format()
- */
-  
+  //Format File System
+  // SPIFFS.format();
+ 
  
   // WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(NETWORK_NAME);
+  WiFi.softAP(NETWORK_NAME, "", 3, false, 8);
   delay(2000); // Without delay I've seen the IP address blank
 
   // if DNSServer is started with "*" for domain name, it will reply with
@@ -166,8 +155,9 @@ void setup() {
 
   globalStringNetworks = readFile();
   delay(5000);
-
-  Serial.println(globalStringNetworks);
+  if (globalStringNetworks != "") {
+    Serial.println(globalStringNetworks);    
+  }
 #endif
 
 #ifdef SPAMMER
@@ -253,7 +243,7 @@ void loop() {
       if(appendSpaces){
         for(int k=0;k<3;k++){
           packetCounter += wifi_send_pkt_freedom(beaconPacket, packetSize, 0) == 0;
-          delay(1);
+          delay(2);
         }
       }
       
@@ -399,6 +389,7 @@ void randomMac() {
 
 // goes to next channel
 void nextChannel() {
+  randomMac();
   if(sizeof(channels) > 1){
     uint8_t ch = channels[channelIndex];
     channelIndex++;
