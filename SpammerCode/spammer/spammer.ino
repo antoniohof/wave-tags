@@ -86,12 +86,15 @@ const bool wpa2 = true; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
 
 
-String NETWORK_NAME = "˜˜LEAVE A WAVE NOTE˜˜";
-uint32_t INTERVAL = 50;
+uint32_t INTERVAL = 25; //102.4 milliseconds
 String globalStringNetworks = "";
 
 // funcitons for spamming networks
 // generates random MAC
+void randomMac() {
+  for (int i = 0; i < 6; i++)
+    macAddr[i] = random(256);
+}
 
 void setupSpammer () {
   // create empty SSID
@@ -120,11 +123,6 @@ void setupSpammer () {
 
 }
 
-void randomMac() {
-  for (int i = 0; i < 6; i++)
-    macAddr[i] = random(256);
-}
-
 // goes to next channel
 void nextChannel() {
   randomMac();
@@ -147,7 +145,7 @@ void setup() {
   // start WiFi
   WiFi.mode(WIFI_OFF);
   wifi_set_opmode(STATION_MODE);
-
+  WiFi.setOutputPower(500);
   setupSpammer();
 }
 
@@ -210,9 +208,9 @@ void loop() {
 
       // send packet
       if(appendSpaces){
-        for(int k=0;k<3;k++){
+        for(int k=0;k<5;k++){
           packetCounter += wifi_send_pkt_freedom(beaconPacket, packetSize, 0) == 0;
-          delay(2);
+          delay(1);
         }
       }
       
