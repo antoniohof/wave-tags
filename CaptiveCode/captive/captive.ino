@@ -9,7 +9,6 @@
 int sensorPin = A0;    // select the input pin for the potentiometer
 float batteryVoltage = 0;  // variable to store the value coming from the sensor
 float divider = 194;
-float dividerBattery = 4.20;
 
 
 // read battery interval
@@ -22,7 +21,7 @@ uint32_t readTime = 0;
 
 String responseHTML = "<!DOCTYPE html>\n<html>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<head>\n    <link href=\"https://fonts.googleapis.com/css?family=Sulphur+Point&display=swap\" rel=\"stylesheet\"><title>Leave your message</title>\n</head>\n<body>\n  <div class=\"content\">\n    <h1> Leave a Note </h1>\n    <form class=\"form\" action=\"/message\" id=\"form1\">\n      <input maxlength=\"31\" type=\"text\" name=\"message\">\n      </input>\n    </form>\n    <button type=\"submit\" form=\"form1\" value=\"Submit\">\n      SEND\n    </button>\n  </div>\n  <div class=\"readmore\">\n    <a class=\"link\" href=\"/readmore\">read more</a>\n  </div>\n</body>\n<style>\n  * {\n    font-family: \"Sulphur Point\";\n  }\n  body {\n    background-color: #ffd300;\n    height: 100vh;\n    overflow-y: hidden;\n  }\n  .content {\n    background-color: #ffd300;\n    height: 100%;\n    overflow-y: hidden;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-around;\n  }\n  h1 {\n    color: black;\n    text-align: center;\n    font-weight: 500;\n    margin: 30px;\n  }\n  .form {\n    height: 20px;\n    width: 80%;\n    margin: 0 auto;\n    margin-bottom: 50px;\n    display: flex\n  }\n  input {\n    height: 20px;\n    width: 100%;\n    font-size: 15px;\n    margin: 0 auto;\n    border-top: 0px;\n    border-left: 0px;\n    border-right: 0px;\n    outline: 0;\n    background-color: #ffd300;\n    border-bottom: 1px solid black;\n    padding:2px 2px;\n  }\n  button {\n    height: 35px;\n    width: 200px;\n    border: 0px solid black;\n    margin: 0 auto;\n    color: #ffd300;\n    font-weight: 1000;\n    background-color: black;\n    border-color: black;\n  }\n  button:hover {\n    background-color: red;\n    color: white\n  }\n\n  .readmore {\n    position: absolute;\n    bottom: 0;\n    height: 20px;\n    width: 100%;\n    color: black;\n    margin-bottom: 5px;\n  }\n  link {\n    color: black !important;\n  }\n  image {\n    position: static;\n    top: 0;\n  }\n</style>\n</html>";
 
-String responseSettings1 = "<!DOCTYPE html>\n<html>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<head>\n    <link href=\"https://fonts.googleapis.com/css?family=Sulphur+Point&display=swap\" rel=\"stylesheet\"><title>Settings</title>\n</head>\n<body>\n  <div class=\"content\">\n    <h1>battery:";
+String responseSettings1 = "<!DOCTYPE html>\n<html>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<head>\n    <link href=\"https://fonts.googleapis.com/css?family=Sulphur+Point&display=swap\" rel=\"stylesheet\"><title>Settings</title>\n</head>\n<body>\n  <div class=\"content\">\n    <h1>battery voltage:";
 String responseSettings2 = "0";
 String responseSettings3 = "</h1>\n</body>\n<style>\n  * {\n    font-family: \"Sulphur Point\";\n  }\n  body {\n    background-color: #ffd300;\n    height: 100vh;\n    overflow-y: hidden;\n  }\n  .content {\n    background-color: #ffd300;\n    height: 100%;\n    overflow-y: hidden;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-around;\n  }\n  h1 {\n    color: black;\n    text-align: center;\n    font-weight: 500;\n    margin: 30px;\n  }\n  .form {\n    height: 20px;\n    width: 80%;\n    margin: 0 auto;\n    margin-bottom: 50px;\n    display: flex\n  }\n  input {\n    height: 20px;\n    width: 100%;\n    font-size: 15px;\n    margin: 0 auto;\n    border-top: 0px;\n    border-left: 0px;\n    border-right: 0px;\n    outline: 0;\n    background-color: #ffd300;\n    border-bottom: 1px solid black;\n    padding:2px 2px;\n  }\n  button {\n    height: 35px;\n    width: 200px;\n    border: 0px solid black;\n    margin: 0 auto;\n    color: #ffd300;\n    font-weight: 1000;\n    background-color: black;\n    border-color: black;\n  }\n  button:hover {\n    background-color: red;\n    color: white\n  }\n\n  .readmore {\n    position: absolute;\n    bottom: 0;\n    height: 20px;\n    width: 100%;\n    color: black;\n    margin-bottom: 5px;\n  }\n  link {\n    color: black !important;\n  }\n  image {\n    position: static;\n    top: 0;\n  }\n</style>\n</html>";
 
@@ -248,7 +247,8 @@ void loop() {
   if (currentTime - readTime > INTERVAL) {
     readTime = currentTime;
 
-    batteryVoltage = analogRead(sensorPin) / divider / dividerBattery;
+    batteryVoltage = (analogRead(sensorPin) / divider);
+    
     responseSettings2 = (String)batteryVoltage; 
     responseSettings = responseSettings1 + responseSettings2 + responseSettings3;
   }
