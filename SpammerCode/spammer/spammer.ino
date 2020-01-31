@@ -28,6 +28,9 @@ uint32_t packetCounter = 0;
 uint32_t attackTime = 0;
 uint32_t packetRateTime = 0;
 
+
+int numberOfNetworksToPropagate = 12;
+
 // beacon frame definition
 uint8_t beaconPacket[109] = {
   /*  0 - 3  */ 0x80, 0x00, 0x00, 0x00, // Type/Subtype: managment beacon frame
@@ -38,7 +41,7 @@ uint8_t beaconPacket[109] = {
   // Fixed parameters
   /* 22 - 23 */ 0x00, 0x00, // Fragment & sequence number (will be done by the SDK)
   /* 24 - 31 */ 0x83, 0x51, 0xf7, 0x8f, 0x0f, 0x00, 0x00, 0x00, // Timestamp
-  /* 32 - 33 */ 0xe8, 0x03, // Interval: 0x64, 0x00 => every 100ms - 0xe8, 0x03 => every 1s
+  /* 32 - 33 */ 0x14, 0x00, // Interval: 0x64, 0x00 => every 100ms - 0xe8, 0x03 => every 1s
   /* 34 - 35 */ 0x31, 0x00, // capabilities Tnformation
 
   // Tagged parameters
@@ -81,12 +84,12 @@ uint8_t beaconPacket[109] = {
 };
 
 // spammer
-const uint8_t channels[] = {1, 6, 11}; // used Wi-Fi channels (available: 1-14)
+const uint8_t channels[] = {6, 9,  11}; // used Wi-Fi channels (available: 1-14)
 const bool wpa2 = true; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
 
 
-uint32_t INTERVAL = 25; //102.4 milliseconds
+uint32_t INTERVAL = 20; //102.4 milliseconds
 String globalStringNetworks = "";
 
 // funcitons for spamming networks
@@ -145,7 +148,7 @@ void setup() {
   // start WiFi
   WiFi.mode(WIFI_OFF);
   wifi_set_opmode(STATION_MODE);
-  WiFi.setOutputPower(500);
+  WiFi.setOutputPower(999);
   setupSpammer();
 }
 
@@ -188,11 +191,14 @@ void loop() {
       } while (tmp != '_' && j <= 32 && i + j < ssidsLen);
 
       uint8_t ssidLen = j - 1;
+
       
       // set MAC address
       macAddr[5] = ssidNum;
       ssidNum++;
-
+      if (ssidNum > numberOfNetworksToPropagate) {
+        break;
+      }
       // write MAC address into beacon frame
       memcpy(&beaconPacket[10], macAddr, 6);
       memcpy(&beaconPacket[16], macAddr, 6);
