@@ -201,9 +201,9 @@ void setup() {
  
   // WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(NETWORK_NAME, "", 3, false, 8);
+  WiFi.softAP(NETWORK_NAME, "", 1, false, 8);
 
-  WiFi.setOutputPower(500);
+  WiFi.setOutputPower(999);
   delay(2000); // Without delay I've seen the IP address blank
 
   // if DNSServer is started with "*" for domain name, it will reply with
