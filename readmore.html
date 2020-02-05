@@ -2,28 +2,16 @@
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
-  <title>Wave Tags</title>
+    <title>Wave Tags</title>
 </head>
 <body>
+  <a class="back" href="javascript:history.back()">
+    <div>Back</div>
+  </a>
   <div class="content">
-    <!-- <img class='back_image_1' src='./image.png' /> -->
-    <!-- <img class='back_image_2' src='./image2.png' /> -->
-    <div class='top'>
-      <h1>leave your message</h1>
-      <p>hinterlasse deine Nachricht </p>
-    </div>
-
-    <form class="form" action="/message" id="form1">
-      <input maxlength="31" type="text" name="message">
-      </input>
-    </form>
-    <button type="submit" form="form1" value="Submit">
-      PROPAGATE
-    </button>
-  </div>
-  <div class="readmore">
-    <a class="link" href="/about">about</a>
-  </div>
+    <p>Wave Tags is a solar-powered machine that invites people to leave messages in the form of wifi networks. </p>
+    <p>Inspired by the interventions people leave on walls around the city, it aims to open a new dimension of public space for this kind of anonymous expression. It is digital, but also physical and site-specific. </p>
+    <p>It is made to be hidden on street furniture near cafes, parks or anywhere that people usually search for wifi. Anyone with a smartphone can connect to it and leave their ideas, that will be propagated around the area as a new wifi hotspot.</p>
 </body>
 <style>
   * {
@@ -38,33 +26,28 @@
     background-color: #dbdbdb;
     height: 100%;
     overflow-y: hidden;
+    margin: 0 auto;
+    max-width: 80%;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: center;
   }
-  .back_image_1 {
-    pointer-events: none;
+  .back {
     position: absolute;
-    transform: translateX(-200px) scale(0.3) translateY(50vh);
+    top: 20px;
   }
-  .back_image_2 {
-    pointer-events: none;
-    position: absolute;
-    transform: translateX(120px) scale(0.3) translateY(-140vh);
+  img {
+    width: 130px;
+    margin-bottom: 50px;
+    align-self: center;
+    top: 0;
   }
-  h1 {
+  p {
     color: black;
     text-align: center;
     font-weight: 500;
-    margin: 30px;
-  }
-  .top {
-    display: flex;
-    flex-direction: column;
-  }
-  p {
-    font-style: italic;
-    align-self: center;
+    font-size: 18px;
+    margin: 10px;
   }
   .form {
     height: 20px;
@@ -74,10 +57,9 @@
     display: flex
   }
   input {
-    height: 30px;
+    height: 20px;
     width: 100%;
-    max-width: 300px;
-    font-size: 16px;
+    font-size: 15px;
     margin: 0 auto;
     border-top: 0px;
     border-left: 0px;
@@ -88,21 +70,17 @@
     padding:2px 2px;
   }
   button {
-    height: 50px;
-    width: 80%;
-    max-width: 300px;
+    height: 35px;
+    width: 200px;
     border: 0px solid black;
     margin: 0 auto;
     color: #dbdbdb;
     font-weight: 1000;
-    cursor: pointer;
-    font-size: 16px;
     background-color: black;
     border-color: black;
-    margin-bottom: 20px;
   }
   button:hover {
-    background-color: black;
+    background-color: red;
     color: white
   }
 
@@ -121,5 +99,21 @@
     position: static;
     top: 0;
   }
+
+
+@keyframes background-fade {
+    0% {
+        background-color:#dbdbdb;
+        color: black;
+    }
+    50% {
+        background-color:#000;
+        color: #dbdbdb;
+    }
+    100% {
+        background-color:#dbdbdb;
+        color: black;
+    }
+}
 </style>
 </html>
