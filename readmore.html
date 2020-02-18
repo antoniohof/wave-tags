@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <title>Wave Tags</title>
+</head>
+<body>
+  <a class="back" href="javascript:history.back()">
+    <div>Back</div>
+  </a>
+  <div class="content">
+    <p>Wave Tags is a solar-powered machine that invites people to leave messages in the form of wifi networks. </p>
+    <p>Inspired by the interventions people leave on walls around the city, it aims to open a new dimension of public space for this kind of anonymous expression. It is digital, but also physical and site-specific. </p>
+    <p>It is made to be hidden on street furniture near cafes, parks or anywhere that people usually search for wifi. Anyone with a smartphone can connect to it and leave their ideas, that will be propagated around the area as a new wifi hotspot.</p>
+</body>
+<style>
+  * {
+    font-family: "Arial";
+  }
+  body {
+    background-color: #dbdbdb;
+    height: 100vh;
+    overflow-y: hidden;
+  }
+  .content {
+    background-color: #dbdbdb;
+    height: 100%;
+    overflow-y: hidden;
+    margin: 0 auto;
+    max-width: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .back {
+    position: absolute;
+    top: 20px;
+  }
+  img {
+    width: 130px;
+    margin-bottom: 50px;
+    align-self: center;
+    top: 0;
+  }
+  p {
+    color: black;
+    text-align: center;
+    font-weight: 500;
+    font-size: 18px;
+    margin: 10px;
+  }
+  .form {
+    height: 20px;
+    width: 80%;
+    margin: 0 auto;
+    margin-bottom: 50px;
+    display: flex
+  }
+  input {
+    height: 20px;
+    width: 100%;
+    font-size: 15px;
+    margin: 0 auto;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    outline: 0;
+    background-color: #dbdbdb;
+    border-bottom: 1px solid black;
+    padding:2px 2px;
+  }
+  button {
+    height: 35px;
+    width: 200px;
+    border: 0px solid black;
+    margin: 0 auto;
+    color: #dbdbdb;
+    font-weight: 1000;
+    background-color: black;
+    border-color: black;
+  }
+  button:hover {
+    background-color: red;
+    color: white
+  }
+
+  .readmore {
+    position: absolute;
+    bottom: 0;
+    height: 20px;
+    width: 100%;
+    color: black;
+    margin-bottom: 5px;
+  }
+  link {
+    color: black !important;
+  }
+  image {
+    position: static;
+    top: 0;
+  }
+
+
+@keyframes background-fade {
+    0% {
+        background-color:#dbdbdb;
+        color: black;
+    }
+    50% {
+        background-color:#000;
+        color: #dbdbdb;
+    }
+    100% {
+        background-color:#dbdbdb;
+        color: black;
+    }
+}
+</style>
+</html>
