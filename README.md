@@ -9,6 +9,3 @@ contains the code for the Weimon D1 Board that creates the captive portal when y
 
 #### /SpammerCode folder 
 contains the code for the Weimon D1 Board that propagates the fake beacon packets around the area. It receives a string of messages from the CaptiveCode Board and uses it to propagate a limited number of networks around the area.
-
-#### /ReadBattery folder 
-contains the code for checking the input voltage from the batteries using an analog input pin from the CaptiveCode Board.
