@@ -2,7 +2,7 @@
 
 Code for Wave Tags project. A box that propagates people's messages as fake wi-fi networks.
 
-https://antoniohof.com/Projects/Wave-Tags
+https://antoniohof.com/Wave-Tags-HfK-Bremen
 
 ## Folders
 
