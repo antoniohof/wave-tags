@@ -6,7 +6,16 @@
                 "/Users/antoniohof/Library/Arduino15/packages/esp8266/tools/**",
                 "/Users/antoniohof/Library/Arduino15/packages/esp8266/hardware/esp8266/2.5.2/**"
             ],
-            "forcedInclude": []
+            "forcedInclude": [],
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ],
+            "intelliSenseMode": "macos-clang-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
         }
-    ]
+    ],
+    "version": 4
 }

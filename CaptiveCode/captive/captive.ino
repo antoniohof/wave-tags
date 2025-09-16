@@ -34,7 +34,7 @@ String NETWORK_NAME = "˜˜WAVE TAGS˜˜";
 String globalStringNetworks = "";
 
 
-const char* filename = "/messages.txt";
+const char* nameOfTheFile = "/messages.txt";
 const byte DNS_PORT = 53;
 IPAddress apIP(8, 8, 8, 8);
 IPAddress netMsk(255, 255, 255, 0);
@@ -146,7 +146,7 @@ String readFile () {
     int i;
     
     //Read File data
-    File f = SPIFFS.open(filename, "r");
+    File f = SPIFFS.open(nameOfTheFile, "r");
     
     if (f)
     {
@@ -158,6 +158,7 @@ String readFile () {
         f.close();  //Close file
         return data;
     }
+    return "";
 }
 
 void handleForm() {
@@ -173,7 +174,7 @@ void handleForm() {
 
   //Create New File And Write Data to It
   //w=Write Open file for writing
-  File f = SPIFFS.open(filename, "w");
+  File f = SPIFFS.open(nameOfTheFile, "w");
   
   if (f)
   {
