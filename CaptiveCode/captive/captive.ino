@@ -15,6 +15,16 @@ const char *myHostname = "waves";            // Host header accepted as local
 const char* NETWORK_NAME = "Digital_Traces";  // SSID broadcast
 const char* nameOfTheFile = "/messages.txt"; // Stored messages
 
+// Channel selection settings
+// If FORCE_CHANNEL > 0 use that channel (1..13). If 0 and RANDOMIZE_CHANNEL true, pick from CHANNEL_OPTIONS.
+// Otherwise fallback to DEFAULT_CHANNEL.
+const int FORCE_CHANNEL = 0;              // Set 1..13 to enforce a channel, or 0 for logic below
+const bool RANDOMIZE_CHANNEL = true;      // Randomize channel at boot (stays fixed afterward)
+const uint8_t DEFAULT_CHANNEL = 1;        // Fallback channel
+const uint8_t CHANNEL_OPTIONS[] = {1, 6, 11};
+const uint8_t CHANNEL_OPTIONS_COUNT = sizeof(CHANNEL_OPTIONS)/sizeof(CHANNEL_OPTIONS[0]);
+uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
+
 
 // Global objects
 const byte DNS_PORT = 53;
@@ -35,6 +45,7 @@ String cachedSuccessHtml;
 /** Redirect to captive portal if we got a request for another domain. Return true in that case so the page handler do not try to handle the request again. */
 boolean captivePortal() {
   if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
+    Serial.println("Redirecting using captivePortal()");
     server.sendHeader("Location", String("http://") + toStringIp(server.client().localIP()), true);
     server.send(200, "text/html", cachedIndexHtml);
     server.client().stop(); // Stop is needed because we sent no content length
@@ -76,7 +87,7 @@ String readHTMLFile(const char* filename) {
 }
 
 // Send HTML with no-cache headers and anti-caching mechanisms
-void sendNoCacheHTML(const String& html) {
+void sendHtml(const String& html) {
   if (captivePortal()) { // If captive portal redirect instead of displaying the page.
     return;
   }
@@ -87,7 +98,7 @@ void sendNoCacheHTML(const String& html) {
   server.send(200, "text/html", html);
 }
 
-void handleRoot() { sendNoCacheHTML(cachedIndexHtml); }
+void handleRoot() { sendHtml(cachedIndexHtml); }
 
 void handleAbout() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -252,12 +263,27 @@ void setup() {
 
 
 
-  // WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(NETWORK_NAME, "", 1, false, 8);
 
-  WiFi.setOutputPower(999);
-  delay(2000); // Without delay I've seen the IP address blank
+  // Decide on channel
+  if (FORCE_CHANNEL > 0 && FORCE_CHANNEL <= 13) {
+    chosenChannel = (uint8_t)FORCE_CHANNEL;
+  } else if (RANDOMIZE_CHANNEL) {
+    randomSeed(os_random() ^ micros());
+    chosenChannel = CHANNEL_OPTIONS[random(CHANNEL_OPTIONS_COUNT)];
+  } else {
+    chosenChannel = DEFAULT_CHANNEL;
+  }
+
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+  bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 8);
+  if (apOk) {
+    Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str());
+  } else {
+    Serial.println("[AP][ERROR] softAP start failed");
+  }
+  WiFi.setOutputPower(20.5);
+
+  delay(3000); // Without delay I've seen the IP address blank
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
@@ -270,19 +296,27 @@ void setup() {
   server.on("/wifisave", handleWifiSave);
   server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
   server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
-
   
-  // replay to all requests with same HTML
-  // server.onNotFound([]() {
-  //  server.send(200, "text/html", responseHTML);
-  // });
+  // iPhone/iOS captive portal handlers
+  /*
+  server.on("/hotspot-detect.html", handleRoot);  // iOS captive portal detection
+  server.on("/library/test/success.html", handleRoot);  // iOS captive portal success page
+  server.on("/captive", handleRoot);  // Generic captive portal
+  
+  // Additional common captive portal endpoints
+  server.on("/ncsi.txt", handleRoot);  // Windows Network Connectivity Status Indicator
+  server.on("/connecttest.txt", handleRoot);  // Windows 10 captive portal
+  server.on("/redirect", handleRoot);  // Generic redirect endpoint
+  server.on("/success.txt", handleRoot);  // Generic success check
+*/
+  
+
   server.onNotFound(handleNotFound);
 
 
   server.on("/message", HTTP_POST, handleForm); // Ensure form route exists
 
   server.begin();
-  delay(4000);
 
   
   // Load stored messages for spammer broadcast
