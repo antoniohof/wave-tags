@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
-#include <ESP8266WebServer.h>
+#include <ESPAsyncWebServer.h>
 #define PUYA_SUPPORT 1
 
 #include <LittleFS.h>   // Use LittleFS instead of SPIFFS
@@ -11,8 +11,7 @@ extern "C" {
 }
 
 // Captive portal configuration
-const char *myHostname = "waves";            // Host header accepted as local
-const char* NETWORK_NAME = "Digital_Traces";  // SSID broadcast
+const char* NETWORK_NAME = "CrystalTags";  // SSID broadcast
 const char* nameOfTheFile = "/messages.txt"; // Stored messages
 
 // Channel selection settings
@@ -21,30 +20,33 @@ const char* nameOfTheFile = "/messages.txt"; // Stored messages
 const int FORCE_CHANNEL = 0;              // Set 1..13 to enforce a channel, or 0 for logic below
 const bool RANDOMIZE_CHANNEL = true;      // Randomize channel at boot (stays fixed afterward)
 const uint8_t DEFAULT_CHANNEL = 1;        // Fallback channel
-const uint8_t CHANNEL_OPTIONS[] = {3, 5, 10};
+const uint8_t CHANNEL_OPTIONS[] = {1, 6, 11};
 const uint8_t CHANNEL_OPTIONS_COUNT = sizeof(CHANNEL_OPTIONS)/sizeof(CHANNEL_OPTIONS[0]);
 uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
 
 
 // Global objects
 const byte DNS_PORT = 53;
-IPAddress apIP(172, 217, 28, 1);
+IPAddress apIP(192, 168, 4, 1);
 IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
-ESP8266WebServer server(80);
+AsyncWebServer server(80);
 
 String globalStringNetworks = "";            // Newline separated messages
 
 
-
 /** Redirect to captive portal if we got a request for another domain. Return true in that case so the page handler do not try to handle the request again. */
-boolean captivePortal() {
-  if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
+boolean captivePortal(AsyncWebServerRequest *request) {
+  String hostHeader = request->host();
+  if (!isIp(hostHeader)) {
     Serial.println("Redirecting using captivePortal()");
-    server.sendHeader("Location", String("http://") + toStringIp(server.client().localIP()), true);
-    server.send(200, "text/html", readHTMLFile("/index.html"));
-    server.client().stop(); // Stop is needed because we sent no content length
+    AsyncWebServerResponse *response = request->beginResponse(302);
+    response->addHeader("Location", String("http://") + toStringIp(WiFi.softAPIP()));
+    response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response->addHeader("Pragma", "no-cache");
+    response->addHeader("Expires", "-1");
+    request->send(response);
     return true;
   }
   return false;
@@ -83,62 +85,60 @@ String readHTMLFile(const char* filename) {
 }
 
 // Send HTML with no-cache headers and anti-caching mechanisms
-void sendHtml(const String& html) {
-  if (captivePortal()) { // If captive portal redirect instead of displaying the page.
+void sendHtml(AsyncWebServerRequest *request, const String& html) {
+  if (captivePortal(request)) { // If captive portal redirect instead of displaying the page.
     return;
   }
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-
-  server.send(200, "text/html", html);
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", html);
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
-void handleRoot() { sendHtml(readHTMLFile("/index.html")); }
+void handleRoot(AsyncWebServerRequest *request) { 
+  sendHtml(request, readHTMLFile("/index.html")); 
+}
 
-void handleAbout() {
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-
-  server.send(200, "text/html", readHTMLFile("/about.html"));
-
+void handleAbout(AsyncWebServerRequest *request) {
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readHTMLFile("/about.html"));
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
 /** Wifi config page handler */
-void handleWifi() {
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-
-  
-  server.send(200, "text/html", readHTMLFile("/index.html"));
-  server.client().stop(); // Stop is needed because we sent no content length
+void handleWifi(AsyncWebServerRequest *request) {
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readHTMLFile("/index.html"));
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
 
 /** Handle the WLAN save form and redirect to WLAN config page again */
-void handleWifiSave() {
+void handleWifiSave(AsyncWebServerRequest *request) {
   // server.arg("n").toCharArray(ssid, sizeof(ssid) - 1);
   // server.arg("p").toCharArray(password, sizeof(password) - 1);
-  server.sendHeader("Location", "wifi", true);
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-  server.send(302, "text/plain", "");    // Empty content inhibits Content-length header so we have to close the socket ourselves.
-  server.client().stop(); // Stop is needed because we sent no content length
+  AsyncWebServerResponse *response = request->beginResponse(302, "text/plain", "");
+  response->addHeader("Location", "wifi");
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
-
-
-void handleNotFound() {
-  if (captivePortal()) { // If caprive portal redirect instead of displaying the error page.
+void handleNotFound(AsyncWebServerRequest *request) {
+  if (captivePortal(request)) { // If captive portal redirect instead of displaying the error page.
     return;
   }
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-  server.send(200, "text/html", readHTMLFile("/index.html"));
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readHTMLFile("/index.html"));
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
 // File operations
@@ -211,15 +211,17 @@ String trimToMaxMessages(const String& messages, int maxMessages) {
 }
 
 // Form handler with 20-message limit
-void handleForm() {
-  String message = server.arg("message");
+void handleForm(AsyncWebServerRequest *request) {
+  String message = "";
+  if (request->hasParam("message", true)) {
+    message = request->getParam("message", true)->value();
+  }
+  
   if (message.length() == 0) {
-    
-    handleRoot();
+    handleRoot(request);
     return;
   }
 
-  
   // Process file operations after response with message limit
   String oldMessages = readMessagesFile();
   String newMessages = message; // Start with new message
@@ -238,11 +240,11 @@ void handleForm() {
   // Send updated message list to spammer device
   sendMessagesToSpammer();
 
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
-
-  server.send(200, "text/html", readHTMLFile("/success.html"));
+  AsyncWebServerResponse *response = request->beginResponse(200, "text/html", readHTMLFile("/success.html"));
+  response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  response->addHeader("Pragma", "no-cache");
+  response->addHeader("Expires", "-1");
+  request->send(response);
 }
 
 void setup() {
@@ -251,7 +253,6 @@ void setup() {
     Serial.println("error starting littlfs");
     return;
   };
-
 
 
 
@@ -265,37 +266,55 @@ void setup() {
     chosenChannel = DEFAULT_CHANNEL;
   }
   WiFi.mode(WIFI_AP);
+  WiFi.persistent(false);
+
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 12);
-  if (apOk) {
-    Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str());
-  } else {
-    Serial.println("[AP][ERROR] softAP start failed");
+  
+  // Try to start AP with retry logic
+  bool apOk = false;
+  for (int attempt = 0; attempt < 3; attempt++) {
+    apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 15);
+    if (apOk) {
+      Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s (attempt %d)\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str(), attempt + 1);
+      break;
+    } else {
+      Serial.printf("[AP][ERROR] softAP start failed (attempt %d)\n", attempt + 1);
+      delay(1000);
+    }
   }
-  delay(2000);  // Without delay I've seen the IP address blank
+  
+  if (!apOk) {
+    Serial.println("[AP][CRITICAL] Failed to start AP after 3 attempts!");
+    return;
+  }
+  
+  // Wait for AP to stabilize
+  delay(2000);
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
-  WiFi.setOutputPower(20.5);
   
-  delay(500); // Without delay I've seen the IP address blank
+  // Set WiFi power and sleep settings for stability
+  WiFi.setOutputPower(20.5);
+  wifi_set_sleep_type(NONE_SLEEP_T);  // Disable WiFi sleep for better stability
+  
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
-    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  dnsServer.setTTL(300);  // Set DNS TTL to 5 minutes
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  server.on("/", handleRoot);
-  server.on("/about", handleAbout);
-  server.on("/wifi", handleWifi);
-  server.on("/wifisave", handleWifiSave);
-  server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
-  server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/about", HTTP_GET, handleAbout);
+  server.on("/wifi", HTTP_GET, handleWifi);
+  server.on("/wifisave", HTTP_GET, handleWifiSave);
+  server.on("/generate_204", HTTP_GET, handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/fwlink", HTTP_GET, handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
   
   // iPhone/iOS captive portal handlers
-  server.on("/hotspot-detect.html", handleRoot);  // iOS captive portal detection
-  server.on("/library/test/success.html", handleRoot);  // iOS captive portal success page
-  server.on("/captive", handleRoot);  // Generic captive portal
+  server.on("/hotspot-detect.html", HTTP_GET, handleRoot);  // iOS captive portal detection
+  server.on("/library/test/success.html", HTTP_GET, handleRoot);  // iOS captive portal success page
+  server.on("/captive", HTTP_GET, handleRoot);  // Generic captive portal
     /*
 
   // Additional common captive portal endpoints
@@ -305,14 +324,11 @@ void setup() {
   server.on("/success.txt", handleRoot);  // Generic success check
 */
   
-
   server.onNotFound(handleNotFound);
-
 
   server.on("/message", HTTP_POST, handleForm); // Ensure form route exists
 
   server.begin();
-
   
   // Load stored messages for spammer broadcast
   globalStringNetworks = readMessagesFile();
@@ -321,6 +337,5 @@ void setup() {
 
 void loop() {
   dnsServer.processNextRequest();
-  server.handleClient();
-  delay(5);
+  delay(10);  // Small delay to prevent watchdog issues
 }
