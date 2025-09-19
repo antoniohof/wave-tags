@@ -2,6 +2,7 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #define PUYA_SUPPORT 1
+
 #include <LittleFS.h>   // Use LittleFS instead of SPIFFS
 
 // Performance optimizations
@@ -10,60 +11,56 @@ extern "C" {
 }
 
 // Captive portal configuration
-const char* NETWORK_NAME = "Digital_Traces";  // No special chars, shorter name
-const char* nameOfTheFile = "/messages.txt";
-const byte DNS_PORT = 53;
+const char *myHostname = "waves";            // Host header accepted as local
+const char* NETWORK_NAME = "Digital_Traces";  // SSID broadcast
+const char* nameOfTheFile = "/messages.txt"; // Stored messages
 
-// Use more standard captive portal IP
-IPAddress apIP(192, 168, 4, 1);  // Standard AP IP
-IPAddress netMsk(255, 255, 255, 0);
 
 // Global objects
+const byte DNS_PORT = 53;
+IPAddress apIP(8, 8, 8, 8);
+IPAddress netMsk(255, 255, 255, 0);
+
 DNSServer dnsServer;
 ESP8266WebServer server(80);
-String globalStringNetworks = "";
 
-// Performance counters
-unsigned long lastHeapCheck = 0;
-const unsigned long HEAP_CHECK_INTERVAL = 30000; // Check every 30 seconds
+String globalStringNetworks = "";            // Newline separated messages
+// Cached HTML pages to avoid repeated FS reads (loaded in setup)
+String cachedIndexHtml;
+String cachedAboutHtml;
+String cachedSuccessHtml;
 
-// Optimized captive portal detection
+
+
+/** Redirect to captive portal if we got a request for another domain. Return true in that case so the page handler do not try to handle the request again. */
 boolean captivePortal() {
-  String hostHeader = server.hostHeader();
-  
-  // Fast check for common patterns
-  if (hostHeader.length() == 0) return false;
-  
-  // Check if it's already our IP or local domain
-  if (isIp(hostHeader) || 
-      hostHeader.endsWith(".local") || 
-      hostHeader == String(NETWORK_NAME)) {
-    return false;
+  if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
+    server.sendHeader("Location", String("http://") + toStringIp(server.client().localIP()), true);
+    server.send(200, "text/html", cachedIndexHtml);
+    server.client().stop(); // Stop is needed because we sent no content length
+    return true;
   }
-  
-  // Redirect to captive portal
-  server.sendHeader("Location", "http://192.168.4.1/", true);
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.send(302, "text/plain", "");
-  server.client().stop();
-  return true;
+  return false;
 }
 
-// Optimized IP check
-boolean isIp(const String& str) {
-  if (str.length() < 7 || str.length() > 15) return false; // Quick length check
-  
-  int dotCount = 0;
+boolean isIp(String str) {
   for (size_t i = 0; i < str.length(); i++) {
-    char c = str.charAt(i);
-    if (c == '.') {
-      dotCount++;
-      if (dotCount > 3) return false;
-    } else if (c < '0' || c > '9') {
+    int c = str.charAt(i);
+    if (c != '.' && (c < '0' || c > '9')) {
       return false;
     }
   }
-  return dotCount == 3;
+  return true;
+}
+
+/** IP to String? */
+String toStringIp(IPAddress ip) {
+  String res = "";
+  for (int i = 0; i < 3; i++) {
+    res += String((ip >> (8 * i)) & 0xFF) + ".";
+  }
+  res += String(((ip >> 8 * 3)) & 0xFF);
+  return res;
 }
 
 // HTML file reading 
@@ -78,52 +75,56 @@ String readHTMLFile(const char* filename) {
   return content;
 }
 
-// Send HTML with no-cache headers
+// Send HTML with no-cache headers and anti-caching mechanisms
 void sendNoCacheHTML(const String& html) {
-  if (html.length() == 0) {
-    server.send(500, "text/plain", "Internal Server Error - HTML not loaded");
+  if (captivePortal()) { // If caprive portal redirect instead of displaying the page.
     return;
   }
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
+
   server.send(200, "text/html", html);
 }
 
-void handleRoot() {
-  String html = readHTMLFile("/index.html");
-  sendNoCacheHTML(html);
-}
+void handleRoot() { sendNoCacheHTML(cachedIndexHtml); }
 
-void handleAbout() {
-  String html = readHTMLFile("/about.html");
-  sendNoCacheHTML(html);
-}
+void handleAbout() { sendNoCacheHTML(cachedAboutHtml); }
 
-// Handlers for various captive portal endpoints
+/** Wifi config page handler */
 void handleWifi() {
-  String html = readHTMLFile("/index.html");
-  sendNoCacheHTML(html);
-}
-
-void handleConnecttest() {
-  String html = readHTMLFile("/index.html");
-  sendNoCacheHTML(html);
-}
-
-void handleWifiSave() {
-  server.sendHeader("Location", "/", true);
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.send(302, "text/plain", "");
-  server.client().stop();
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+
+  
+  server.send(200, "text/html", cachedIndexHtml);
+  server.client().stop(); // Stop is needed because we sent no content length
 }
+
+
+/** Handle the WLAN save form and redirect to WLAN config page again */
+void handleWifiSave() {
+  // server.arg("n").toCharArray(ssid, sizeof(ssid) - 1);
+  // server.arg("p").toCharArray(password, sizeof(password) - 1);
+  server.sendHeader("Location", "wifi", true);
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+  server.send(302, "text/plain", "");    // Empty content inhibits Content-length header so we have to close the socket ourselves.
+  server.client().stop(); // Stop is needed because we sent no content length
+}
+
+
 
 void handleNotFound() {
-  if (captivePortal()) {
+  if (captivePortal()) { // If caprive portal redirect instead of displaying the error page.
     return;
   }
-  String html = readHTMLFile("/index.html");
-  sendNoCacheHTML(html);
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+  server.send(200, "text/html", cachedIndexHtml);
 }
 
 // File operations
@@ -141,6 +142,17 @@ void writeMessagesFile(const String& content) {
   if (f) {
     f.print(content);
     f.close();
+  }
+}
+
+// Send message list to spammer device via Serial
+void sendMessagesToSpammer() {
+  if (globalStringNetworks.length() > 0) {
+    // Frame format: <START>{payload}<END>
+    // This allows receiver to ignore any boot garbage until <START>
+    Serial.print("<START>");
+    Serial.print(globalStringNetworks);
+    Serial.println("<END>");
   }
 }
 
@@ -188,19 +200,21 @@ String trimToMaxMessages(const String& messages, int maxMessages) {
 void handleForm() {
   String message = server.arg("message");
   if (message.length() == 0) {
+    
     handleRoot();
     return;
   }
   
-  // Read success page from file
-  String successHTML = readHTMLFile("/success.html");
-  if (successHTML.indexOf("Error: File not found") >= 0) {
+  if (cachedSuccessHtml.length() == 0) {
+    cachedSuccessHtml = readHTMLFile("/success.html");
+  }
+  if (cachedSuccessHtml.indexOf("Error: File not found") >= 0) {
     server.send(500, "text/plain", "Success page not found");
     return;
   }
   
   // Send response immediately for better UX
-  sendNoCacheHTML(successHTML);
+  sendNoCacheHTML(cachedSuccessHtml);
   
   // Process file operations after response with message limit
   String oldMessages = readMessagesFile();
@@ -216,116 +230,65 @@ void handleForm() {
   // Write to file
   writeMessagesFile(newMessages);
   globalStringNetworks = newMessages;
+  
+  // Send updated message list to spammer device
+  sendMessagesToSpammer();
 }
 
 void setup() {
-  Serial.begin(115200);
-  
-  // System optimizations
-  system_update_cpu_freq(160);
-  
-  // Initialize File System
-  if (!LittleFS.begin()) {
+  Serial.begin(9600);
+  if(!LittleFS.begin()) {
+    Serial.println("error starting littlfs");
     return;
-  }
-  
-  // Configure WiFi
-  delay(100);
-  WiFi.setOutputPower(999);
-  
-  if (!WiFi.softAPConfig(apIP, apIP, netMsk)) {
-    return;
-  }
-  
-  bool apStarted = WiFi.softAP(NETWORK_NAME, "", 1, false, 6);
-  if (!apStarted) {
-    return;
-  }
-  
-  delay(1000);
-  
-  if (WiFi.softAPIP() == IPAddress(0, 0, 0, 0)) {
-    return;
-  }
-  
-  // DNS server for captive portal
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-  if (!dnsServer.start(DNS_PORT, "*", apIP)) {
-    return;
-  }
-  
-  // Setup web server routes
-  setupRoutes();
-  server.onNotFound(handleNotFound);
-  server.begin();
-  
-  delay(500);
-  
-  // Load existing messages and display them for spammer device
-  globalStringNetworks = readMessagesFile();
-  if (globalStringNetworks.length() > 0) {
-    // Split and display each message for spammer to pick up
-    String remainingMessages = globalStringNetworks;
-    int messageNum = 1;
-    
-    while (remainingMessages.length() > 0) {
-      int newlinePos = remainingMessages.indexOf('\n');
-      String currentMessage;
-      
-      if (newlinePos == -1) {
-        currentMessage = remainingMessages;
-        remainingMessages = "";
-      } else {
-        currentMessage = remainingMessages.substring(0, newlinePos);
-        remainingMessages = remainingMessages.substring(newlinePos + 1);
-      }
-      
-      if (currentMessage.length() > 0) {
-        Serial.printf("  %d: %s\n", messageNum, currentMessage.c_str());
-        messageNum++;
-      }
-    }
-  }
-}
+  };
 
-void setupRoutes() {
-  // Main routes
+  // Load HTML cache once
+  cachedIndexHtml   = readHTMLFile("/index.html");
+  cachedAboutHtml   = readHTMLFile("/about.html");
+  cachedSuccessHtml = readHTMLFile("/success.html");
+
+
+
+  // WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+  WiFi.softAP(NETWORK_NAME, "", 1, false, 8);
+
+  WiFi.setOutputPower(999);
+  delay(2000); // Without delay I've seen the IP address blank
+
+  // if DNSServer is started with "*" for domain name, it will reply with
+  // provided IP to all DNS request
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  dnsServer.start(DNS_PORT, "*", apIP);
+
   server.on("/", handleRoot);
-  server.on("/index.html", handleRoot);
   server.on("/about", handleAbout);
-  server.on("/message", HTTP_POST, handleForm);
-  
-  // Captive portal compatibility routes
-  server.on("/generate_204", handleRoot);
-  server.on("/gen_204", handleRoot);
-  server.on("/hotspot-detect.html", handleRoot);
-  server.on("/library/test/success.html", handleRoot);
-  server.on("/fwlink", handleRoot);
-  server.on("/ncsi.txt", handleConnecttest);
-  server.on("/connecttest.txt", handleConnecttest);
-  server.on("/connectivity-check.html", handleRoot);
-  server.on("/check_network_status.txt", handleConnecttest);
   server.on("/wifi", handleWifi);
   server.on("/wifisave", handleWifiSave);
+  server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
+  server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
+
+  
+  // replay to all requests with same HTML
+  // server.onNotFound([]() {
+  //  server.send(200, "text/html", responseHTML);
+  // });
   server.onNotFound(handleNotFound);
+
+
+  server.on("/message", handleForm); //form action is handled here
+
+  server.begin();
+  delay(1000);
+
+  
+
+  // Load stored messages for spammer broadcast
+  globalStringNetworks = readMessagesFile();
+  sendMessagesToSpammer();
 }
 
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
-  
-  // Memory management and AP monitoring check (every 30 seconds)
-  unsigned long currentTime = millis();
-  if (currentTime - lastHeapCheck > HEAP_CHECK_INTERVAL) {
-    lastHeapCheck = currentTime;
-    
-    uint32_t freeHeap = ESP.getFreeHeap();
-    
-    // Check if AP is still running
-    if (WiFi.getMode() != WIFI_AP && WiFi.getMode() != WIFI_AP_STA) {
-      ESP.restart(); // Restart if AP mode is lost
-    }
-  }
-  
-  yield();
 }

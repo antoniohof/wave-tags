@@ -92,6 +92,19 @@ const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve
 uint32_t INTERVAL = 20; //102.4 milliseconds
 String globalStringNetworks = "";
 
+// Count messages in newline-separated string
+int countMessages(const String& messages) {
+  if (messages.length() == 0) return 0;
+  
+  int count = 1;
+  for (int i = 0; i < messages.length(); i++) {
+    if (messages.charAt(i) == '\n') {
+      count++;
+    }
+  }
+  return count;
+}
+
 // funcitons for spamming networks
 // generates random MAC
 void randomMac() {
@@ -142,21 +155,83 @@ void nextChannel() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // Match original baud rate to avoid corruption
   delay(1000);
+  
+  Serial.println("=== SPAMMER DEVICE STARTING ===");
+  Serial.println("Waiting for message data from captive portal...");
 
   // start WiFi
   WiFi.mode(WIFI_OFF);
   wifi_set_opmode(STATION_MODE);
   WiFi.setOutputPower(999);
   setupSpammer();
+  
+  Serial.println("WiFi spammer initialized");
+  Serial.println("Ready to receive and broadcast messages");
 }
 
+String receivedBuffer = ""; // Buffer to accumulate incoming payload between markers
+bool inFrame = false;        // Have we seen <START> marker
+const size_t MAX_BUFFER_SIZE = 2048; // Safety guard
+
 void loop() {
-  while(Serial.available()) {
-    globalStringNetworks = Serial.readString();// read the incoming data as string
-    Serial.println("received networks");
-    Serial.println(globalStringNetworks);
+  while (Serial.available()) {
+    char raw = (char)Serial.read();
+    char c = raw;
+    // Filter out obvious noise (non-printable except markers characters '<','>')
+    if ((c < 32 || c > 126) && c != '<' && c != '>' && c != '\n' && c != '\r') {
+      // Skip silently; could also count skipped bytes
+      continue;
+    }
+    // Normalize CR to nothing (we treat only LF implicitly when markers appear)
+    if (c == '\r') continue;
+
+    receivedBuffer += c; // Temporarily store to search for markers
+
+    // Limit size early to avoid runaway growth if markers missing
+    if (receivedBuffer.length() > MAX_BUFFER_SIZE) {
+      Serial.println(">> WARNING: Buffer overflow without END marker. Resetting state.");
+      receivedBuffer = "";
+      inFrame = false;
+      continue;
+    }
+
+    if (!inFrame) {
+      // Look for <START>
+      int startPos = receivedBuffer.indexOf("<START>");
+      if (startPos >= 0) {
+        // Discard everything before <START>
+        if (startPos > 0) {
+          receivedBuffer.remove(0, startPos);
+        }
+        // Remove the <START> marker itself
+        receivedBuffer.remove(0, 7); // length of <START>
+        inFrame = true;
+        // Prepare a clean payload buffer (reuse receivedBuffer)
+        Serial.println(">> <START> detected. Beginning to capture payload...");
+      } else {
+        // Haven't found start marker yet; keep buffer from growing unbounded
+        if (receivedBuffer.length() > 20) {
+          // Keep last 20 chars for marker search
+            receivedBuffer = receivedBuffer.substring(receivedBuffer.length() - 20);
+        }
+      }
+    } else {
+      // We are inside a frame, look for <END>
+      int endPos = receivedBuffer.indexOf("<END>");
+      if (endPos >= 0) {
+        // Payload is data before <END>
+        globalStringNetworks = receivedBuffer.substring(0, endPos);
+        Serial.println(">> <END> detected. Complete payload received.");
+        Serial.println(">> Payload (messages):");
+        Serial.println(globalStringNetworks);
+        Serial.printf(">> Total messages to broadcast: %d\n", countMessages(globalStringNetworks));
+        // Reset for next frame
+        receivedBuffer = "";
+        inFrame = false;
+      }
+    }
   }
 
   
@@ -164,6 +239,14 @@ void loop() {
 
   // send out SSIDs
   if (currentTime - attackTime > INTERVAL) {
+    
+    if (globalStringNetworks.length() == 0) {
+      // No messages to broadcast, just wait
+      attackTime = currentTime;
+      return;
+    }
+    
+    Serial.printf(">> Broadcasting cycle started (Channel %d)\n", wifi_channel);
 
     char ssids[globalStringNetworks.length()+1];
     globalStringNetworks.toCharArray(ssids, globalStringNetworks.length()+1) ;
@@ -192,6 +275,11 @@ void loop() {
 
       uint8_t ssidLen = j - 1;
 
+      // Log the message being broadcast
+      char messageBuffer[33];
+      memcpy_P(messageBuffer, &ssids[i], ssidLen);
+      messageBuffer[ssidLen] = '\0';
+      Serial.printf(">> Broadcasting message %d: '%s' (len:%d)\n", ssidNum, messageBuffer, ssidLen);
       
       // set MAC address
       macAddr[5] = ssidNum;
