@@ -282,10 +282,9 @@ void setup() {
   server.on("/message", HTTP_POST, handleForm); // Ensure form route exists
 
   server.begin();
-  delay(1000);
+  delay(4000);
 
   
-
   // Load stored messages for spammer broadcast
   globalStringNetworks = readMessagesFile();
   sendMessagesToSpammer();
