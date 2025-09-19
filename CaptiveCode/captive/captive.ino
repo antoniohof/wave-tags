@@ -21,24 +21,20 @@ const char* nameOfTheFile = "/messages.txt"; // Stored messages
 const int FORCE_CHANNEL = 0;              // Set 1..13 to enforce a channel, or 0 for logic below
 const bool RANDOMIZE_CHANNEL = true;      // Randomize channel at boot (stays fixed afterward)
 const uint8_t DEFAULT_CHANNEL = 1;        // Fallback channel
-const uint8_t CHANNEL_OPTIONS[] = {1, 6, 11};
+const uint8_t CHANNEL_OPTIONS[] = {3, 5, 10};
 const uint8_t CHANNEL_OPTIONS_COUNT = sizeof(CHANNEL_OPTIONS)/sizeof(CHANNEL_OPTIONS[0]);
 uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
 
 
 // Global objects
 const byte DNS_PORT = 53;
-IPAddress apIP(8, 8, 8, 8);
+IPAddress apIP(172, 217, 28, 1);
 IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
 ESP8266WebServer server(80);
 
 String globalStringNetworks = "";            // Newline separated messages
-// Cached HTML pages to avoid repeated FS reads (loaded in setup)
-String cachedIndexHtml;
-String cachedAboutHtml;
-String cachedSuccessHtml;
 
 
 
@@ -47,7 +43,7 @@ boolean captivePortal() {
   if (!isIp(server.hostHeader()) && server.hostHeader() != (String(myHostname) + ".local")) {
     Serial.println("Redirecting using captivePortal()");
     server.sendHeader("Location", String("http://") + toStringIp(server.client().localIP()), true);
-    server.send(200, "text/html", cachedIndexHtml);
+    server.send(200, "text/html", readHTMLFile("/index.html"));
     server.client().stop(); // Stop is needed because we sent no content length
     return true;
   }
@@ -98,14 +94,14 @@ void sendHtml(const String& html) {
   server.send(200, "text/html", html);
 }
 
-void handleRoot() { sendHtml(cachedIndexHtml); }
+void handleRoot() { sendHtml(readHTMLFile("/index.html")); }
 
 void handleAbout() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
 
-  server.send(200, "text/html", cachedAboutHtml);
+  server.send(200, "text/html", readHTMLFile("/about.html"));
 
 }
 
@@ -116,7 +112,7 @@ void handleWifi() {
   server.sendHeader("Expires", "-1");
 
   
-  server.send(200, "text/html", cachedIndexHtml);
+  server.send(200, "text/html", readHTMLFile("/index.html"));
   server.client().stop(); // Stop is needed because we sent no content length
 }
 
@@ -142,7 +138,7 @@ void handleNotFound() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
-  server.send(200, "text/html", cachedIndexHtml);
+  server.send(200, "text/html", readHTMLFile("/index.html"));
 }
 
 // File operations
@@ -246,7 +242,7 @@ void handleForm() {
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
 
-  server.send(200, "text/html", cachedSuccessHtml);
+  server.send(200, "text/html", readHTMLFile("/success.html"));
 }
 
 void setup() {
@@ -255,11 +251,6 @@ void setup() {
     Serial.println("error starting littlfs");
     return;
   };
-
-  // Load HTML cache once
-  cachedIndexHtml   = readHTMLFile("/index.html");
-  cachedAboutHtml   = readHTMLFile("/about.html");
-  cachedSuccessHtml = readHTMLFile("/success.html");
 
 
 
@@ -273,21 +264,25 @@ void setup() {
   } else {
     chosenChannel = DEFAULT_CHANNEL;
   }
-
+  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 8);
+  bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 12);
   if (apOk) {
     Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str());
   } else {
     Serial.println("[AP][ERROR] softAP start failed");
   }
+  delay(2000);  // Without delay I've seen the IP address blank
+  Serial.print("AP IP address: ");
+  Serial.println(WiFi.softAPIP());
   WiFi.setOutputPower(20.5);
-
-  delay(3000); // Without delay I've seen the IP address blank
+  
+  delay(500); // Without delay I've seen the IP address blank
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/", handleRoot);
@@ -298,11 +293,11 @@ void setup() {
   server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
   
   // iPhone/iOS captive portal handlers
-  /*
   server.on("/hotspot-detect.html", handleRoot);  // iOS captive portal detection
   server.on("/library/test/success.html", handleRoot);  // iOS captive portal success page
   server.on("/captive", handleRoot);  // Generic captive portal
-  
+    /*
+
   // Additional common captive portal endpoints
   server.on("/ncsi.txt", handleRoot);  // Windows Network Connectivity Status Indicator
   server.on("/connecttest.txt", handleRoot);  // Windows 10 captive portal
@@ -327,4 +322,5 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
+  delay(5);
 }
