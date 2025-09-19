@@ -77,7 +77,7 @@ String readHTMLFile(const char* filename) {
 
 // Send HTML with no-cache headers and anti-caching mechanisms
 void sendNoCacheHTML(const String& html) {
-  if (captivePortal()) { // If caprive portal redirect instead of displaying the page.
+  if (captivePortal()) { // If captive portal redirect instead of displaying the page.
     return;
   }
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -89,7 +89,14 @@ void sendNoCacheHTML(const String& html) {
 
 void handleRoot() { sendNoCacheHTML(cachedIndexHtml); }
 
-void handleAbout() { sendNoCacheHTML(cachedAboutHtml); }
+void handleAbout() {
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+
+  server.send(200, "text/html", cachedAboutHtml);
+
+}
 
 /** Wifi config page handler */
 void handleWifi() {
@@ -204,17 +211,7 @@ void handleForm() {
     handleRoot();
     return;
   }
-  
-  if (cachedSuccessHtml.length() == 0) {
-    cachedSuccessHtml = readHTMLFile("/success.html");
-  }
-  if (cachedSuccessHtml.indexOf("Error: File not found") >= 0) {
-    server.send(500, "text/plain", "Success page not found");
-    return;
-  }
-  
-  // Send response immediately for better UX
-  sendNoCacheHTML(cachedSuccessHtml);
+
   
   // Process file operations after response with message limit
   String oldMessages = readMessagesFile();
@@ -233,6 +230,12 @@ void handleForm() {
   
   // Send updated message list to spammer device
   sendMessagesToSpammer();
+
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+
+  server.send(200, "text/html", cachedSuccessHtml);
 }
 
 void setup() {
@@ -276,7 +279,7 @@ void setup() {
   server.onNotFound(handleNotFound);
 
 
-  server.on("/message", handleForm); //form action is handled here
+  server.on("/message", HTTP_POST, handleForm); // Ensure form route exists
 
   server.begin();
   delay(1000);

@@ -15,12 +15,12 @@
     
     <div class="explanation">
       <p class="intro">You are now connected to the invisible wifi-scape of this abandoned hotel.</p>
-      <p class="details">Like digital graffiti in empty corridors, your anonymous message will become part of the collective memory of this space.</p>
+      <p class="details">Like digital graffiti in empty corridors, your anonymous message will become part of the collective expression of this space.</p>
     </div>
 
     <div class="interaction">
       <form class="form" action="/message" method="post" id="form1">
-        <input maxlength="31" type="text" name="message" placeholder="Publish your message into the network...">
+        <input maxlength="31" type="text" name="message" placeholder="Write your message">
         </input>
       </form>
       <button type="submit" form="form1" value="Submit">
@@ -32,10 +32,10 @@
     <div class="context">
       <p>Your message will pulse through the wifi networks surrounding this space, joining the chorus of anonymous voices echoing through these digital corridors.</p>
     </div>
-  </div>
-  
-  <div class="about">
-    <a class="link" href="/about">→ About this installation</a>
+
+    <div class="about">
+      <a class="link" href="/about">About this installation</a>
+    </div>
   </div>
 </body>
 <style>
@@ -223,10 +223,11 @@
   }
   
   .about {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    position: relative;
     z-index: 3;
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
   }
   
   .link {
@@ -257,9 +258,9 @@
     }
     
     .about {
-      position: static;
-      margin-top: 2rem;
-      text-align: center;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      margin-bottom: 2rem;
     }
   }
 </style>
