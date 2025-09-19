@@ -28,7 +28,7 @@ uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
 
 // Global objects
 const byte DNS_PORT = 53;
-IPAddress apIP(8,8,8,8);
+IPAddress apIP(10,10,10,1);
 IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
@@ -266,19 +266,20 @@ void setup() {
   }
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
-  
+  delay(2000);  // Without delay I've seen the IP address blank
+
   bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 12);
   if (apOk) {
     Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str());
   } else {
     Serial.println("[AP][ERROR] softAP start failed");
   }
-  delay(2000);  // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
   WiFi.setOutputPower(20.5);
-  
-  delay(500); // Without delay I've seen the IP address blank
+  wifi_set_sleep_type(NONE_SLEEP_T);  // Disable WiFi sleep for better stability
+
+  delay(2000); // Without delay I've seen the IP address blank
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
@@ -294,9 +295,9 @@ void setup() {
   server.on("/fwlink", handleRoot);  //Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
   
   // iPhone/iOS captive portal handlers
-  server.on("/hotspot-detect.html", handleRoot);  // iOS captive portal detection
-  server.on("/library/test/success.html", handleRoot);  // iOS captive portal success page
-  server.on("/captive", handleRoot);  // Generic captive portal
+  //server.on("/hotspot-detect.html", handleRoot);  // iOS captive portal detection
+  //server.on("/library/test/success.html", handleRoot);  // iOS captive portal success page
+  //server.on("/captive", handleRoot);  // Generic captive portal
     /*
 
   // Additional common captive portal endpoints
@@ -323,5 +324,5 @@ void setup() {
 void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
-  delay(5);
+  delay(50);
 }
