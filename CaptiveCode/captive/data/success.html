@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="CaptiveNetworkSupport" content="true">
   <title>Message Transmitted | Digital Traces</title>
 </head>
 <body>
@@ -48,21 +50,18 @@
 
 <script>
 function exitCaptivePortal() {
-  // Method 1: Use captive portal specific commands
-  try {
-    // Close captive portal window (works on many mobile browsers)
-    if (window.CaptivePortal && window.CaptivePortal.close) {
-      window.CaptivePortal.close();
-      return;
-    }
+  // Method 2: Redirect to captive portal success URLs that trigger exit
+  setTimeout(function() {
+    // These URLs are commonly used to signal captive portal completion
+    var exitUrls = [
+      'http://captive.apple.com/hotspot-detect.html',
+      'http://www.google.com/generate_204',
+      'http://connectivitycheck.gstatic.com/generate_204'
+    ];
     
-    // Try standard window close for captive portal browsers
-    if (window.close) {
-      window.close();
-    }
-  } catch (e) {
-    // Ignore errors and try next method
-  }
+    // Try the first exit URL
+    window.location.href = exitUrls[1]; // Google's 204 response
+  }, 30);
 
 }
 </script>
