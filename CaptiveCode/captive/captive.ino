@@ -28,7 +28,7 @@ uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
 
 // Global objects
 const byte DNS_PORT = 53;
-IPAddress apIP(172, 217, 28, 1);
+IPAddress apIP(8,8,8,8);
 IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
@@ -266,6 +266,7 @@ void setup() {
   }
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, netMsk);
+  
   bool apOk = WiFi.softAP(NETWORK_NAME, "", chosenChannel, false, 12);
   if (apOk) {
     Serial.printf("[AP] Started SSID='%s' ch=%u IP=%s\n", NETWORK_NAME, chosenChannel, apIP.toString().c_str());
@@ -282,7 +283,7 @@ void setup() {
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-
+  dnsServer.setTTL(300);  // Set DNS TTL to 5 minutes
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/", handleRoot);
