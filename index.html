@@ -2,124 +2,264 @@
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
-  <title>Wave Tags</title>
+  <title>Wave Tags | Back Rooms</title>
 </head>
 <body>
+  <div class="ambient-glow"></div>
   <div class="content">
-    <!-- <img class='back_image_1' src='./image.png' /> -->
-    <!-- <img class='back_image_2' src='./image2.png' /> -->
-    <div class='top'>
-      <h1>leave your message</h1>
-      <p> Lassen sie seine Nachricht </p>
+    <div class="header">
+      <h1>WAVE TAGS</h1>
+      <h2>Back Rooms Wi-Fi Scape</h2>
+    </div>
+    
+    <div class="explanation">
+      <p class="intro">You are now connected to the invisible wifi-scape of this abandoned hotel.</p>
+      <p class="details">Like digital graffiti in empty corridors, your anonymous message will become part of the collective memory of this space.</p>
     </div>
 
-    <form class="form" action="/message" id="form1">
-      <input maxlength="31" type="text" name="message">
-      </input>
-    </form>
-    <button type="submit" form="form1" value="Submit">
-      PROPAGATE
-    </button>
+    <div class="interaction">
+      <form class="form" action="/message" id="form1">
+        <input maxlength="31" type="text" name="message" placeholder="Leave your trace in the digital void...">
+        </input>
+      </form>
+      <button type="submit" form="form1" value="Submit">
+        <span class="btn-text">TRANSMIT INTO THE VOID</span>
+        <span class="btn-glow"></span>
+      </button>
+    </div>
+
+    <div class="context">
+      <p>Your message will pulse through the wifi networks surrounding this space, joining the chorus of anonymous voices echoing through these digital corridors.</p>
+    </div>
   </div>
+  
   <div class="about">
-    <a class="link" href="/about">about</a>
+    <a class="link" href="/about">→ About this installation</a>
   </div>
 </body>
 <style>
   * {
-    font-family: "Arial";
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
+  
   body {
-    background-color: #dbdbdb;
-    height: 100vh;
-    overflow-y: hidden;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1117 100%);
+    min-height: 100vh;
+    color: #e8f5e8;
+    overflow-x: hidden;
+    position: relative;
   }
-  .content {
-    background-color: #dbdbdb;
-    height: 100%;
-    overflow-y: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-  }
-  .back_image_1 {
-    pointer-events: none;
-    position: absolute;
-    transform: translateX(-200px) scale(0.3) translateY(50vh);
-  }
-  .back_image_2 {
-    pointer-events: none;
-    position: absolute;
-    transform: translateX(120px) scale(0.3) translateY(-140vh);
-  }
-  h1 {
-    color: black;
-    text-align: center;
-    font-weight: 500;
-    margin: 30px;
-  }
-  .top {
-    display: flex;
-    flex-direction: column;
-  }
-  p {
-    font-style: italic;
-    align-self: center;
-  }
-  .form {
-    height: 20px;
-    width: 80%;
-    margin: 0 auto;
-    margin-bottom: 50px;
-    display: flex
-  }
-  input {
-    height: 30px;
-    width: 100%;
-    max-width: 300px;
-    font-size: 16px;
-    margin: 0 auto;
-    border-top: 0px;
-    border-left: 0px;
-    border-right: 0px;
-    outline: 0;
-    background-color: #dbdbdb;
-    border-bottom: 1px solid black;
-    padding:2px 2px;
-  }
-  button {
-    height: 50px;
-    width: 80%;
-    max-width: 300px;
-    border: 0px solid black;
-    margin: 0 auto;
-    color: #dbdbdb;
-    font-weight: 1000;
-    cursor: pointer;
-    font-size: 16px;
-    background-color: black;
-    border-color: black;
-    margin-bottom: 20px;
-  }
-  button:hover {
-    background-color: black;
-    color: white
-  }
-
-  .about {
-    position: absolute;
-    bottom: 0;
-    height: 20px;
-    width: 100%;
-    color: black;
-    margin-bottom: 5px;
-  }
-  link {
-    color: black !important;
-  }
-  image {
-    position: static;
+  
+  .ambient-glow {
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 40%, rgba(0, 255, 127, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(127, 255, 212, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    animation: pulse-ambient 8s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-ambient {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  .content {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .header {
+    margin-bottom: 3rem;
+  }
+  
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, #00ff7f, #7fffd4, #98fb98);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 127, 0.3);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  
+  h2 {
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: #7fffd4;
+    opacity: 0.8;
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 127, 0.3); }
+    50% { text-shadow: 0 0 30px rgba(0, 255, 127, 0.6), 0 0 40px rgba(0, 255, 127, 0.2); }
+  }
+  
+  .explanation {
+    max-width: 600px;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+  }
+  
+  .intro {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: #7fffd4;
+  }
+  
+  .details {
+    font-size: 0.95rem;
+    font-weight: 300;
+    opacity: 0.9;
+    font-style: italic;
+  }
+  
+  .interaction {
+    margin-bottom: 3rem;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .form {
+    margin-bottom: 2rem;
+  }
+  
+  input {
+    width: 100%;
+    height: 50px;
+    font-size: 16px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(127, 255, 212, 0.3);
+    border-radius: 8px;
+    padding: 0 1rem;
+    color: #e8f5e8;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  
+  input::placeholder {
+    color: rgba(127, 255, 212, 0.5);
+    font-style: italic;
+  }
+  
+  input:focus {
+    border-color: #7fffd4;
+    box-shadow: 0 0 20px rgba(127, 255, 212, 0.2);
+    background: rgba(0, 0, 0, 0.6);
+  }
+  
+  button {
+    position: relative;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(45deg, rgba(0, 255, 127, 0.1), rgba(127, 255, 212, 0.1));
+    border: 2px solid rgba(127, 255, 212, 0.4);
+    border-radius: 8px;
+    color: #7fffd4;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .btn-text {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .btn-glow {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(127, 255, 212, 0.2), transparent);
+    transition: left 0.6s ease;
+  }
+  
+  button:hover {
+    border-color: #7fffd4;
+    box-shadow: 0 0 30px rgba(127, 255, 212, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  button:hover .btn-glow {
+    left: 100%;
+  }
+  
+  button:active {
+    transform: translateY(0);
+  }
+  
+  .context {
+    max-width: 500px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    opacity: 0.7;
+    font-weight: 300;
+  }
+  
+  .about {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 3;
+  }
+  
+  .link {
+    color: rgba(127, 255, 212, 0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 300;
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .link:hover {
+    color: #7fffd4;
+    border-bottom-color: rgba(127, 255, 212, 0.5);
+  }
+  
+  @media (max-width: 768px) {
+    .content {
+      padding: 1rem;
+    }
+    
+    .explanation {
+      margin-bottom: 2rem;
+    }
+    
+    .interaction {
+      margin-bottom: 2rem;
+    }
+    
+    .about {
+      position: static;
+      margin-top: 2rem;
+      text-align: center;
+    }
   }
 </style>
 </html>

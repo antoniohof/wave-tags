@@ -2,118 +2,213 @@
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
-    <title>Wave Tags</title>
+    <title>About | Digital Traces | Back Rooms</title>
 </head>
 <body>
+  <div class="ambient-glow"></div>
   <a class="back" href="javascript:history.back()">
-    <div>Back</div>
+    <div>← Return to the void</div>
   </a>
+  
   <div class="content">
-    <p>Wave Tags is a solar-powered machine that invites people to leave messages in the form of wifi networks. </p>
-    <p>Inspired by the interventions people leave on walls around the city, it aims to open a new dimension of public space for this kind of anonymous expression. It is digital, but also physical and site-specific. </p>
-    <p>It is made to be hidden on street furniture near cafes, parks or anywhere that people usually search for wifi. Anyone with a smartphone can connect to it and leave their ideas, that will be propagated around the area as a new wifi hotspot.</p>
+    <div class="header">
+      <h1>DIGITAL TRACES</h1>
+      <h2>Invisible Networks in Abandoned Spaces</h2>
+    </div>
+    
+    <div class="text-content">
+      <section class="intro-section">
+        <p class="lead">Welcome to the wifi-scape of an abandoned hotel. Here, in the invisible dimension of electromagnetic spectrum, new forms of collective publishing emerge.</p>
+      </section>
+
+      <section class="concept-section">
+        <h3>The Invisible Layer</h3>
+        <p>Like the physical corridors of this hotel, the wifi networks that once served guests now lie dormant. Our installation reactivates this invisible infrastructure, transforming it into a space for anonymous digital expression.</p>
+        
+        <h3>Digital Graffiti</h3>
+        <p>Your messages become part of a decentralized network of voices—anonymous traces left by visitors who have encountered these glowing devices. Like graffiti on abandoned walls, these digital tags accumulate over time, creating a collective narrative of presence in absence.</p>
+
+        <h3>Phosphorescent Artifacts</h3>
+        <p>The physical devices pulse faintly in the dim spaces of this building, acting as both haunting artifacts of a fictional post-digital infrastructure and functional interfaces. They glow with the residual energy of communication, bridging the physical and digital realms.</p>
+
+        <h3>Participatory Publishing</h3>
+        <p>Each message contributes to a growing archive of anonymous expression. Your words join a chorus of digital voices that exist simultaneously in the local wifi-scape and in the online mirror of this installation. This creates a form of collective publishing that is both site-specific and globally accessible.</p>
+      </section>
+
+      <section class="technical-section">
+        <h3>How It Works</h3>
+        <p>When you submit a message, it becomes a wifi network name visible to anyone scanning for networks in this area. Your trace propagates through the electromagnetic spectrum, creating a temporary constellation of thoughts, feelings, and expressions floating in the abandoned space.</p>
+        
+      </section>
+
+      <section class="context-section">
+        <h3>About the Artists</h3>
+        <p><strong>Antonio Hofmeister Ribeiro & Liudmila Savelyeva</strong></p>
+        <p>This work builds upon the original "Wave Tags" project, reimagined for the Back Rooms exhibition as an exploration of how digital infrastructure can activate abandoned spaces and create new forms of collective expression.</p>
+      </section>
+    </div>
+  </div>
 </body>
 <style>
   * {
-    font-family: "Arial";
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
+  
   body {
-    background-color: #dbdbdb;
-    height: 100vh;
-    overflow-y: hidden;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1117 100%);
+    min-height: 100vh;
+    color: #e8f5e8;
+    line-height: 1.6;
+    position: relative;
   }
-  .content {
-    background-color: #dbdbdb;
+  
+  .ambient-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    overflow-y: hidden;
-    margin: 0 auto;
-    max-width: 80%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    background: radial-gradient(circle at 30% 40%, rgba(0, 255, 127, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(127, 255, 212, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    animation: pulse-ambient 8s ease-in-out infinite;
   }
+  
+  @keyframes pulse-ambient {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
   .back {
-    position: absolute;
-    top: 20px;
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    z-index: 10;
+    color: rgba(127, 255, 212, 0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 300;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid transparent;
   }
-  img {
-    width: 130px;
-    margin-bottom: 50px;
-    align-self: center;
-    top: 0;
+  
+  .back:hover {
+    color: #7fffd4;
+    border-bottom-color: rgba(127, 255, 212, 0.5);
   }
-  p {
-    color: black;
+  
+  .content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 6rem 2rem 4rem;
+  }
+  
+  .header {
     text-align: center;
+    margin-bottom: 4rem;
+  }
+  
+  h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, #00ff7f, #7fffd4, #98fb98);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 127, 0.3);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  
+  h2 {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    color: #7fffd4;
+    opacity: 0.8;
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 127, 0.3); }
+    50% { text-shadow: 0 0 30px rgba(0, 255, 127, 0.6), 0 0 40px rgba(0, 255, 127, 0.2); }
+  }
+  
+  .text-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  
+  section {
+    margin-bottom: 3rem;
+  }
+  
+  .intro-section .lead {
+    font-size: 1.1rem;
     font-weight: 500;
-    font-size: 18px;
-    margin: 10px;
+    color: #7fffd4;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-style: italic;
   }
-  .form {
-    height: 20px;
-    width: 80%;
-    margin: 0 auto;
-    margin-bottom: 50px;
-    display: flex
+  
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #98fb98;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+    letter-spacing: 0.05em;
   }
-  input {
-    height: 20px;
-    width: 100%;
-    font-size: 15px;
-    margin: 0 auto;
-    border-top: 0px;
-    border-left: 0px;
-    border-right: 0px;
-    outline: 0;
-    background-color: #dbdbdb;
-    border-bottom: 1px solid black;
-    padding:2px 2px;
+  
+  p {
+    margin-bottom: 1rem;
+    font-weight: 300;
+    opacity: 0.9;
   }
-  button {
-    height: 35px;
-    width: 200px;
-    border: 0px solid black;
-    margin: 0 auto;
-    color: #dbdbdb;
-    font-weight: 1000;
-    background-color: black;
-    border-color: black;
+  
+  .technical-section {
+    background: rgba(0, 255, 127, 0.05);
+    border: 1px solid rgba(127, 255, 212, 0.2);
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
   }
-  button:hover {
-    background-color: red;
-    color: white
+  
+  .context-section {
+    border-top: 1px solid rgba(127, 255, 212, 0.2);
+    padding-top: 2rem;
+    margin-top: 3rem;
   }
-
-  .readmore {
-    position: absolute;
-    bottom: 0;
-    height: 20px;
-    width: 100%;
-    color: black;
-    margin-bottom: 5px;
+  
+  .context-section strong {
+    color: #7fffd4;
+    font-weight: 500;
   }
-  link {
-    color: black !important;
-  }
-  image {
-    position: static;
-    top: 0;
-  }
-
-
-@keyframes background-fade {
-    0% {
-        background-color:#dbdbdb;
-        color: black;
+  
+  @media (max-width: 768px) {
+    .content {
+      padding: 5rem 1rem 3rem;
     }
-    50% {
-        background-color:#000;
-        color: #dbdbdb;
+    
+    .back {
+      top: 1rem;
+      left: 1rem;
     }
-    100% {
-        background-color:#dbdbdb;
-        color: black;
+    
+    .technical-section {
+      padding: 1.5rem;
+      margin: 1.5rem 0;
     }
-}
+    
+    h3 {
+      margin-top: 1.5rem;
+    }
+  }
 </style>
 </html>
