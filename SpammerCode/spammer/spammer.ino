@@ -183,12 +183,12 @@ void loop() {
     nextChannel();
 
     while (i < ssidsLen) {
-      // read out next SSID
+      // read out next SSID - now using newline separator instead of underscore
       j = 0;
       do {
         tmp = pgm_read_byte(ssids + i + j);
         j++;
-      } while (tmp != '_' && j <= 32 && i + j < ssidsLen);
+      } while (tmp != '\n' && j <= 32 && i + j < ssidsLen);
 
       uint8_t ssidLen = j - 1;
 
