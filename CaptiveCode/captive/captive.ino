@@ -12,7 +12,7 @@ extern "C" {
 
 // Captive portal configuration
 const char *myHostname = "waves";            // Host header accepted as local
-const char* NETWORK_NAME = "Digital_Traces";  // SSID broadcast
+const char* NETWORK_NAME = "Wave_Publishing";  // SSID broadcast
 const char* nameOfTheFile = "/messages.txt"; // Stored messages
 
 // Channel selection settings
