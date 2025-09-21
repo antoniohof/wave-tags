@@ -28,7 +28,7 @@ uint8_t chosenChannel = DEFAULT_CHANNEL;  // Resolved during setup()
 
 // Global objects
 const byte DNS_PORT = 53;
-IPAddress apIP(10,10,10,1);
+IPAddress apIP(8,8,8,8); // this fixes android 
 IPAddress netMsk(255, 255, 255, 0);
 
 DNSServer dnsServer;
@@ -283,7 +283,7 @@ void setup() {
 
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
-    dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.setTTL(300);  // Set DNS TTL to 5 minutes
   dnsServer.start(DNS_PORT, "*", apIP);
 
