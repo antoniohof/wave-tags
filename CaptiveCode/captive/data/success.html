@@ -40,23 +40,58 @@
         <span class="btn-text">Exit WiFi Network</span>
         <span class="btn-glow"></span>
       </button>
+        <div id="exit-status" class="exit-status" aria-live="polite"></div>
     </div>
   </div>
 
 <script>
-function exitCaptivePortal() {
-  // Method 2: Redirect to captive portal success URLs that trigger exit
-  setTimeout(function() {
-    // These URLs are commonly used to signal captive portal completion
-    var exitUrls = [
-      'http://captive.apple.com/hotspot-detect.html',
-      'http://www.google.com/generate_204',
-      'http://connectivitycheck.gstatic.com/generate_204'
+  // Attempts to convince the OS captive portal helper to close.
+  // IMPORTANT: A webpage cannot actually force the device to disconnect from Wi‑Fi
+  // for security reasons. What we CAN do is load well-known connectivity check
+  // endpoints that (when they succeed) tell the OS that internet is reachable,
+  // causing the captive portal sheet/browser to dismiss.
+  function exitCaptivePortal() {
+    const statusEl = document.getElementById('exit-status');
+    if (statusEl) {
+      statusEl.textContent = 'Attempting to close captive portal…';
+    }
+
+    // A list of common OS/Platform connectivity check URLs.
+    // We rotate through them quickly; whichever succeeds first usually triggers exit.
+    const exitUrls = [
+      'http://www.apple.com/library/test/success.html', // iOS/macOS
+      'http://captive.apple.com/hotspot-detect.html',   // legacy Apple
+      'http://www.google.com/generate_204',             // Android / Chrome
+      'http://connectivitycheck.gstatic.com/generate_204',
+      'http://clients3.google.com/generate_204',
+      'http://msftconnecttest.com/connecttest.txt'      // Windows
     ];
-    
-    // Try the first exit URL
-    window.location.href = exitUrls[1]; // Google's 204 response
-  }, 30);
+
+    let index = 0;
+    const attemptIntervalMs = 1800; // give the OS a moment between attempts
+    let attempts = 0;
+
+    function tryNext() {
+      if (index >= exitUrls.length) {
+        if (statusEl) {
+          statusEl.textContent = 'If this window did not close, manually leave the Wi‑Fi network in your device settings.';
+        }
+        return;
+      }
+      const url = exitUrls[index++];
+      attempts++;
+      if (statusEl) {
+        statusEl.textContent = 'Signaling network access (' + attempts + '/' + exitUrls.length + ')…';
+      }
+      // Navigate the top-level location (most reliable in captive portal helpers)
+      window.location.href = url;
+      // Schedule next attempt in case the portal stays open.
+      setTimeout(tryNext, attemptIntervalMs);
+    }
+
+    // Kick off attempts after a tiny delay so UI can update.
+    setTimeout(tryNext, 50);
+  }
 </script>
 
 </body>
@@ -345,6 +380,14 @@ function exitCaptivePortal() {
       padding: 0.8rem 1.5rem;
       font-size: 0.85rem;
     }
+  }
+
+  .exit-status {
+    font-size: 0.75rem;
+    opacity: 0.75;
+    max-width: 300px;
+    text-align: center;
+    line-height: 1.3;
   }
 </style>
 </html>
