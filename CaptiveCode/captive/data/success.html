@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Message Transmitted | Digital Traces</title>
+  <title>Message Transmitted | The Backrooms Network</title>
 </head>
 <body>
   <div class="ambient-glow"></div>
@@ -20,17 +20,14 @@
     <h1 class="success-title">TRANSMISSION COMPLETE</h1>
     
     <div class="message-info">
-      <p class="primary">Your digital trace has been released into the wifi-scape.</p>
+      <p class="primary">Your message has been released into The Backrooms Network.</p>
       
       <div class="actions">
-        <p class="instruction">Check the available wifi networks around you — your message now pulses among them, joining the collective expression of this space.</p>
+        <p class="instruction">To see your message and others, disconnect from "The Backrooms" network and scan for available Wi-Fi networks around you. Your message now appears as a network name, joining the constellation of anonymous voices in this space.</p>
         
-        <p class="secondary">Your anonymous voice has become part of the invisible layer of this building, echoing through the electromagnetic spectrum alongside other digital traces left by previous visitors.</p>
+        <p class="secondary">Your digital tag has become part of the invisible architecture of connectivity, forming a ghostly participatory archive alongside traces left by other visitors to this liminal space.</p>
       </div>
-      
-      <div class="persistence">
-        <p class="archive-note">This message will also appear in the online archive, creating a bridge between the site-specific installation and the broader digital world.</p>
-      </div>
+    
     </div>
     
     <div class="return-action">
@@ -48,23 +45,18 @@
 
 <script>
 function exitCaptivePortal() {
-  // Method 1: Use captive portal specific commands
-  try {
-    // Close captive portal window (works on many mobile browsers)
-    if (window.CaptivePortal && window.CaptivePortal.close) {
-      window.CaptivePortal.close();
-      return;
-    }
+  // Method 2: Redirect to captive portal success URLs that trigger exit
+  setTimeout(function() {
+    // These URLs are commonly used to signal captive portal completion
+    var exitUrls = [
+      'http://captive.apple.com/hotspot-detect.html',
+      'http://www.google.com/generate_204',
+      'http://connectivitycheck.gstatic.com/generate_204'
+    ];
     
-    // Try standard window close for captive portal browsers
-    if (window.close) {
-      window.close();
-    }
-  } catch (e) {
-    // Ignore errors and try next method
-  }
-
-}
+    // Try the first exit URL
+    window.location.href = exitUrls[1]; // Google's 204 response
+  }, 30);
 </script>
 
 </body>

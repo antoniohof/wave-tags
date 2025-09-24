@@ -11,8 +11,8 @@ extern "C" {
 }
 
 // Captive portal configuration
-const char *myHostname = "waves";            // Host header accepted as local
-const char* NETWORK_NAME = "Wave_Publishing";  // SSID broadcast
+const char *myHostname = "backrooms";            // Host header accepted as local
+const char* NETWORK_NAME = "The Backrooms";  // SSID broadcast
 const char* nameOfTheFile = "/messages.txt"; // Stored messages
 
 // Channel selection settings
@@ -162,10 +162,12 @@ void writeMessagesFile(const String& content) {
 // Send message list to spammer device via Serial
 void sendMessagesToSpammer() {
   if (globalStringNetworks.length() > 0) {
+    // Trim to 15 messages for transmission
+    String messagesToSend = trimToMaxMessages(globalStringNetworks, 15);
     // Frame format: <START>{payload}<END>
     // This allows receiver to ignore any boot garbage until <START>
     Serial.print("<START>");
-    Serial.print(globalStringNetworks);
+    Serial.print(messagesToSend);
     Serial.println("<END>");
   }
 }
@@ -210,7 +212,7 @@ String trimToMaxMessages(const String& messages, int maxMessages) {
   return messages.substring(startPos);
 }
 
-// Form handler with 20-message limit
+// Form handler with 50-message limit
 void handleForm() {
   String message = server.arg("message");
   if (message.length() == 0) {
@@ -228,8 +230,8 @@ void handleForm() {
     newMessages += "\n" + oldMessages; // Use newline separator
   }
   
-  // Trim to maximum 20 messages
-  newMessages = trimToMaxMessages(newMessages, 20);
+  // Trim to maximum 50 messages
+  newMessages = trimToMaxMessages(newMessages, 50);
   
   // Write to file
   writeMessagesFile(newMessages);
