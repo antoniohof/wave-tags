@@ -30,8 +30,12 @@
 
     <div class="about">
       <p class="description">
-        <strong>The Backrooms Network (2025)</strong> by <em>Antonio Hofmeister Ribeiro & Liudmila Savelyeva</em> transforms abandoned Wi-Fi signals into a space for anonymous, collective expression. Visitors are invited to connect to local offline networks, leaving digital traces that form a ghostly, participatory archive - making the invisible architecture of connectivity visible, tactile, and communal.
+        <strong>The Backrooms Network (2025)</strong> by <em>Antonio Hofmeister Ribeiro & Liudmila Savelyeva</em> transforms abandoned WiFi signals into a space for anonymous, collective expression. Visitors are invited to connect to a local offline network, leaving digital traces that form a ghostly, participatory archive—making the invisible architecture of connectivity visible, tactile, and communal.
       </p>
+    </div>
+    
+    <div class="about">
+      <a class="link" href="/about">About this installation</a>
     </div>
   </div>
 </body>
@@ -81,7 +85,7 @@
   }
   
   .header {
-    margin-bottom: 3rem;
+    margin-bottom: 1rem;
   }
   
   h1 {
@@ -89,11 +93,11 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, #00ff7f, #7fffd4, #98fb98);
+    background: linear-gradient(45deg, #00c3ff, #03ddff, #5f9fff);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px rgba(0, 255, 127, 0.3);
+    text-shadow: 0 0 20px rgba(64, 224, 255, 0.3);
     animation: glow-pulse 3s ease-in-out infinite;
   }
   
@@ -101,7 +105,7 @@
     font-size: clamp(0.9rem, 2vw, 1.2rem);
     font-weight: 300;
     letter-spacing: 0.15em;
-    color: #7fffd4;
+    color: #33e8f5;
     opacity: 0.8;
   }
   
@@ -111,16 +115,17 @@
   }
   
   .explanation {
-    max-width: 600px;
+    max-width: 700px;
     margin-bottom: 3rem;
     line-height: 1.6;
+    padding: 2rem;
   }
   
   .intro {
     font-size: 1.1rem;
     font-weight: 500;
-    margin-bottom: 1rem;
-    color: #7fffd4;
+    margin-bottom: 2rem;
+    color: #33e8f5;
   }
   
   .details {
@@ -128,6 +133,7 @@
     font-weight: 300;
     opacity: 0.9;
     font-style: italic;
+    text-align: left;
   }
   
   .interaction {
@@ -146,7 +152,7 @@
     font-size: 16px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(127, 255, 212, 0.3);
+    border: 1px solid rgba(127, 227, 255, 0.4);
     border-radius: 8px;
     padding: 0 1rem;
     color: #e8f5e8;
@@ -155,13 +161,13 @@
   }
   
   input::placeholder {
-    color: rgba(127, 255, 212, 0.5);
+    color: rgba(127, 234, 255, 0.5);
     font-style: italic;
   }
   
   input:focus {
-    border-color: #7fffd4;
-    box-shadow: 0 0 20px rgba(127, 255, 212, 0.2);
+    border-color: #03ddff;
+    box-shadow: 0 0 20px rgba(127, 246, 255, 0.2);
     background: rgba(0, 0, 0, 0.6);
   }
   
@@ -169,10 +175,10 @@
     position: relative;
     width: 100%;
     height: 60px;
-    background: linear-gradient(45deg, rgba(0, 255, 127, 0.1), rgba(127, 255, 212, 0.1));
-    border: 2px solid rgba(127, 255, 212, 0.4);
+    background: linear-gradient(45deg, rgba(0, 251, 255, 0.1), rgba(127, 229, 255, 0.1));
+    border: 2px solid rgba(127, 227, 255, 0.4);
     border-radius: 8px;
-    color: #7fffd4;
+    color: #03ddff;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: 16px;
     font-weight: 500;
@@ -198,8 +204,8 @@
   }
   
   button:hover {
-    border-color: #7fffd4;
-    box-shadow: 0 0 30px rgba(127, 255, 212, 0.3);
+    border-color: #03ddff;
+    box-shadow: 0 0 30px rgba(127, 240, 255, 0.3);
     transform: translateY(-2px);
   }
   
@@ -212,7 +218,7 @@
   }
   
   .context {
-    max-width: 500px;
+    max-width: 700px;
     font-size: 0.85rem;
     line-height: 1.5;
     opacity: 0.7;
@@ -222,10 +228,10 @@
   .about {
     position: relative;
     z-index: 3;
-    text-align: center;
+    text-align: left;
     padding: 2rem;
     margin-top: 2rem;
-    max-width: 600px;
+    max-width: 700px;
   }
 
   .description {
@@ -233,23 +239,23 @@
     line-height: 1.6;
     font-weight: 300;
     opacity: 0.85;
-    color: #e8f5e8;
+    color: #e8f2f5;
     font-style: italic;
   }
 
   .description strong {
-    color: #7fffd4;
+    color: #33e8f5;
     font-weight: 500;
     font-style: normal;
   }
 
   .description em {
-    color: #98fb98;
+    color: #33e8f5;
     font-style: italic;
   }
   
   .link {
-    color: rgba(127, 255, 212, 0.7);
+    color: rgba(127, 232, 255, 0.7);
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 300;
@@ -258,8 +264,8 @@
   }
   
   .link:hover {
-    color: #7fffd4;
-    border-bottom-color: rgba(127, 255, 212, 0.5);
+    color: #33e8f5;
+    border-bottom-color: rgba(118, 220, 251, 0.5);
   }
   
   @media (max-width: 768px) {
