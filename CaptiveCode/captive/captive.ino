@@ -96,6 +96,15 @@ void sendHtml(const String& html) {
 
 void handleRoot() { sendHtml(readHTMLFile("/index.html")); }
 
+void handleAbout() {
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
+
+  server.send(200, "text/html", readHTMLFile("/about.html"));
+
+}
+
 /** Wifi config page handler */
 void handleWifi() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -281,6 +290,7 @@ void setup() {
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/", handleRoot);
+  server.on("/about", handleAbout);
   server.on("/wifi", handleWifi);
   server.on("/wifisave", handleWifiSave);
   server.on("/generate_204", handleRoot);  //Android captive portal. Maybe not needed. Might be handled by notFound handler.
