@@ -229,9 +229,9 @@ void handleForm() {
   if (oldMessages.length() > 0) {
     newMessages += "\n" + oldMessages; // Use newline separator
   }
-  
-  // Trim to maximum 50 messages
-  newMessages = trimToMaxMessages(newMessages, 50);
+
+  // Trim to maximum 100 messages
+  newMessages = trimToMaxMessages(newMessages, 100);
   
   // Write to file
   writeMessagesFile(newMessages);
@@ -317,9 +317,14 @@ void setup() {
 
   server.begin();
 
-  
   // Load stored messages for spammer broadcast
   globalStringNetworks = readMessagesFile();
+
+  delay(200);
+  // Log all the messages 
+  Serial.println("Stored messages:");
+  Serial.println(globalStringNetworks);
+  delay(1000);
   sendMessagesToSpammer();
 }
 
